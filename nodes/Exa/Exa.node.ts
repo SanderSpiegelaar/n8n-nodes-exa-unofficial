@@ -36,40 +36,35 @@ export class Exa implements INodeType {
 				name: 'resource',
 				type: 'options',
 				noDataExpression: true,
-			options: [
-				{
-					name: 'Answer',
-					value: 'answer',
-					description: 'Get an AI-generated answer to a query',
-				},
-				{
-					name: 'Content',
-					value: 'contents',
-					description: 'Get contents from URLs',
-				},
-				{
-					name: 'Deep Search',
-					value: 'deepSearch',
-					description: 'Deep search with synthesized output and optional structured schema',
-				},
-				{
-					name: 'Find Similar',
-					value: 'findSimilar',
-					description: 'Find similar links to a given URL',
-				},
-				{
-					name: 'Research',
-					value: 'research',
-					description: 'Create and manage asynchronous research tasks',
-				},
-				{
-					name: 'Search',
-					value: 'search',
-					description: 'Search the web intelligently',
-				},
-			],
-			default: 'search',
-		},
+				options: [
+					{
+						name: 'Answer',
+						value: 'answer',
+						description: 'Get an AI-generated answer to a query',
+					},
+					{
+						name: 'Content',
+						value: 'contents',
+						description: 'Get contents from URLs',
+					},
+					{
+						name: 'Find Similar',
+						value: 'findSimilar',
+						description: 'Find similar links to a given URL',
+					},
+					{
+						name: 'Research',
+						value: 'research',
+						description: 'Create and manage asynchronous research tasks',
+					},
+					{
+						name: 'Search',
+						value: 'search',
+						description: 'Search the web (includes deep search with synthesized output)',
+					},
+				],
+				default: 'search',
+			},
 			{
 				displayName: 'Operation',
 				name: 'operation',
@@ -94,49 +89,23 @@ export class Exa implements INodeType {
 						},
 					},
 				],
-					default: 'search',
+				default: 'search',
 			},
-				{
-					displayName: 'Operation',
-					name: 'operation',
-					type: 'options',
-					noDataExpression: true,
-					displayOptions: {
-						show: {
-							resource: ['deepSearch'],
-						},
-					},
-					options: [
-						{
-							name: 'Deep Search',
-							value: 'deepSearch',
-							action: 'Deep search the web',
-							description: 'Search with deep analysis and synthesized output',
-							routing: {
-								request: {
-									method: 'POST',
-									url: '/search',
-								},
-							},
-						},
-					],
-					default: 'deepSearch',
-				},
 			{
-					displayName: 'Operation',
-					name: 'operation',
-					type: 'options',
-					noDataExpression: true,
-					displayOptions: {
-						show: {
-							resource: ['contents'],
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['contents'],
 					},
 				},
 				options: [
 					{
 						name: 'Get Contents',
 						value: 'getContents',
-						action: 'Get contents from ur ls',
+						action: 'Get contents from urls',
 						description: 'Retrieve contents from a list of URLs',
 						routing: {
 							request: {
@@ -174,245 +143,140 @@ export class Exa implements INodeType {
 				],
 				default: 'findSimilar',
 			},
-		{
-			displayName: 'Operation',
-			name: 'operation',
-			type: 'options',
-			noDataExpression: true,
-			displayOptions: {
-				show: {
-					resource: ['answer'],
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['answer'],
+					},
 				},
+				options: [
+					{
+						name: 'Get Answer',
+						value: 'getAnswer',
+						action: 'Get an AI answer',
+						description: 'Get an AI-generated answer to a query',
+						routing: {
+							request: {
+								method: 'POST',
+								url: '/answer',
+							},
+						},
+					},
+				],
+				default: 'getAnswer',
 			},
-			options: [
-				{
-					name: 'Get Answer',
-					value: 'getAnswer',
-					action: 'Get an AI answer',
-					description: 'Get an AI-generated answer to a query',
-					routing: {
-						request: {
-							method: 'POST',
-							url: '/answer',
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['research'],
+					},
+				},
+				options: [
+					{
+						name: 'Create Task',
+						value: 'createTask',
+						action: 'Create a research task',
+						description: 'Create an asynchronous research task',
+						routing: {
+							request: {
+								method: 'POST',
+								url: '/research/v1',
+							},
+						},
+					},
+					{
+						name: 'Get Task',
+						value: 'getTask',
+						action: 'Get a research task',
+						description: 'Retrieve status and results of a research task',
+						routing: {
+							request: {
+								method: 'GET',
+								url: '=/research/v1/{{ $parameter.researchId }}',
+							},
+						},
+					},
+					{
+						name: 'List Tasks',
+						value: 'listTasks',
+						action: 'List research tasks',
+						description: 'Retrieve a paginated list of research tasks',
+						routing: {
+							request: {
+								method: 'GET',
+								url: '/research/v1',
+							},
+						},
+					},
+				],
+				default: 'createTask',
+			},
+			{
+				displayName: 'Query',
+				name: 'query',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['search', 'answer'],
+					},
+				},
+				default: '',
+				description: 'The search query',
+				routing: {
+					request: {
+						body: {
+							query: '={{ $value }}',
 						},
 					},
 				},
-			],
-			default: 'getAnswer',
-		},
-		{
-			displayName: 'Operation',
-			name: 'operation',
-			type: 'options',
-			noDataExpression: true,
-			displayOptions: {
-				show: {
-					resource: ['research'],
-				},
 			},
-			options: [
-				{
-					name: 'Create Task',
-					value: 'createTask',
-					action: 'Create a research task',
-					description: 'Create an asynchronous research task',
-					routing: {
-						request: {
-							method: 'POST',
-							url: '/research/v1',
+			{
+				displayName: 'Instructions',
+				name: 'instructions',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['research'],
+						operation: ['createTask'],
+					},
+				},
+				default: '',
+				description: 'Instructions for what you would like research on',
+				typeOptions: {
+					rows: 4,
+				},
+				routing: {
+					request: {
+						body: {
+							instructions: '={{ $value }}',
 						},
 					},
 				},
-				{
-					name: 'Get Task',
-					value: 'getTask',
-					action: 'Get a research task',
-					description: 'Retrieve status and results of a research task',
-					routing: {
-						request: {
-							method: 'GET',
-							url: '=/research/v1/{{ $parameter.researchId }}',
-						},
+			},
+			{
+				displayName: 'Research ID',
+				name: 'researchId',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['research'],
+						operation: ['getTask'],
 					},
 				},
-				{
-					name: 'List Tasks',
-					value: 'listTasks',
-					action: 'List research tasks',
-					description: 'Retrieve a paginated list of research tasks',
-					routing: {
-						request: {
-							method: 'GET',
-							url: '/research/v1',
-						},
-					},
-				},
-			],
-			default: 'createTask',
-		},
-		{
-			displayName: 'Query',
-			name: 'query',
-			type: 'string',
-			required: true,
-			displayOptions: {
-				show: {
-					resource: ['search', 'deepSearch', 'answer'],
-				},
+				default: '',
+				description: 'The unique identifier of the research request to retrieve',
 			},
-			default: '',
-			description: 'The search query',
-			routing: {
-				request: {
-					body: {
-						query: '={{ $value }}',
-					},
-				},
-			},
-			},
-		{
-			displayName: 'Deep Search Type',
-			name: 'deepSearchType',
-			type: 'options',
-			required: true,
-			displayOptions: {
-				show: {
-					resource: ['deepSearch'],
-				},
-			},
-			options: [
-				{
-					name: 'Deep',
-					value: 'deep',
-					description: 'Deep search with synthesized output',
-				},
-				{
-					name: 'Deep Reasoning',
-					value: 'deep-reasoning',
-					description: 'Full deep search with stronger reasoning',
-				},
-			],
-			default: 'deep',
-			routing: {
-				request: {
-					body: {
-						type: '={{ $value }}',
-					},
-				},
-			},
-		},
-		{
-			displayName: 'Output Format',
-			name: 'outputFormat',
-			type: 'options',
-			displayOptions: {
-				show: {
-					resource: ['deepSearch'],
-				},
-			},
-			options: [
-				{
-					name: 'Text',
-					value: 'text',
-					description: 'Get synthesized text output (default)',
-				},
-				{
-					name: 'Structured (JSON Schema)',
-					value: 'structured',
-					description: 'Get structured object output matching a JSON Schema',
-				},
-			],
-			default: 'text',
-			description: 'Choose between plain text or structured JSON output',
-		},
-		{
-			displayName: 'Output Schema',
-			name: 'deepSearchOutputSchema',
-			type: 'json',
-			required: true,
-			displayOptions: {
-				show: {
-					resource: ['deepSearch'],
-					outputFormat: ['structured'],
-				},
-			},
-			default: '',
-			description: 'JSON Schema defining the structure of the output object',
-			routing: {
-				request: {
-					body: {
-						outputSchema: '={{ JSON.parse($value) }}',
-					},
-				},
-			},
-		},
-		{
-			displayName: 'Additional Queries',
-			name: 'deepSearchAdditionalQueries',
-			type: 'string',
-			displayOptions: {
-				show: {
-					resource: ['deepSearch'],
-				},
-			},
-			default: '',
-			description: 'Comma-separated query variations to improve deep search results',
-			routing: {
-				send: {
-					preSend: [
-						async function (this, requestOptions) {
-							const queries = this.getNodeParameter('deepSearchAdditionalQueries', 0) as string;
-							if (queries) {
-								const queryArray = queries.split(',').map((q) => q.trim());
-								requestOptions.body = {
-									...(requestOptions.body as object),
-									additionalQueries: queryArray,
-								};
-							}
-							return requestOptions;
-						},
-					],
-				},
-			},
-		},
-		{
-			displayName: 'Instructions',
-			name: 'instructions',
-			type: 'string',
-			required: true,
-			displayOptions: {
-				show: {
-					resource: ['research'],
-					operation: ['createTask'],
-				},
-			},
-			default: '',
-			description: 'Instructions for what you would like research on',
-			typeOptions: {
-				rows: 4,
-			},
-			routing: {
-				request: {
-					body: {
-						instructions: '={{ $value }}',
-					},
-				},
-			},
-		},
-		{
-			displayName: 'Research ID',
-			name: 'researchId',
-			type: 'string',
-			required: true,
-			displayOptions: {
-				show: {
-					resource: ['research'],
-					operation: ['getTask'],
-				},
-			},
-			default: '',
-			description: 'The unique identifier of the research request to retrieve',
-		},
 			{
 				displayName: 'URL',
 				name: 'url',
@@ -477,6 +341,16 @@ export class Exa implements INodeType {
 						description: 'Intelligently combines neural and other search methods',
 					},
 					{
+						name: 'Deep',
+						value: 'deep',
+						description: 'Deep search with synthesized output (~5s)',
+					},
+					{
+						name: 'Deep Reasoning',
+						value: 'deep-reasoning',
+						description: 'Full deep search with stronger reasoning (~7s)',
+					},
+					{
 						name: 'Fast',
 						value: 'fast',
 						description: 'Streamlined low-latency search',
@@ -502,12 +376,92 @@ export class Exa implements INodeType {
 				},
 			},
 			{
+				displayName: 'Output Format',
+				name: 'outputFormat',
+				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						type: ['deep', 'deep-reasoning'],
+					},
+				},
+				options: [
+					{
+						name: 'Text',
+						value: 'text',
+						description: 'Get synthesized text output (default)',
+					},
+					{
+						name: 'Structured (JSON Schema)',
+						value: 'structured',
+						description: 'Get structured object output matching a JSON Schema',
+					},
+				],
+				default: 'text',
+				description: 'Choose between plain text or structured JSON output for deep search',
+			},
+			{
+				displayName: 'Output Schema',
+				name: 'outputSchema',
+				type: 'json',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						type: ['deep', 'deep-reasoning'],
+						outputFormat: ['structured'],
+					},
+				},
+				default: '',
+				description: 'JSON Schema defining the structure of the output object',
+				routing: {
+					request: {
+						body: {
+							outputSchema: '={{ JSON.parse($value) }}',
+						},
+					},
+				},
+			},
+			{
+				displayName: 'Additional Queries',
+				name: 'deepSearchAdditionalQueries',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						type: ['deep', 'deep-reasoning'],
+					},
+				},
+				default: '',
+				description: 'Comma-separated query variations to improve deep search results',
+				routing: {
+					send: {
+						preSend: [
+							async function (this, requestOptions) {
+								const queries = this.getNodeParameter(
+									'deepSearchAdditionalQueries',
+									0,
+								) as string;
+								if (queries) {
+									const queryArray = queries.split(',').map((q) => q.trim());
+									requestOptions.body = {
+										...(requestOptions.body as object),
+										additionalQueries: queryArray,
+									};
+								}
+								return requestOptions;
+							},
+						],
+					},
+				},
+			},
+			{
 				displayName: 'Number of Results',
 				name: 'numResults',
 				type: 'number',
 				displayOptions: {
 					show: {
-						resource: ['search', 'deepSearch', 'findSimilar'],
+						resource: ['search', 'findSimilar'],
 					},
 				},
 				typeOptions: {
@@ -524,465 +478,439 @@ export class Exa implements INodeType {
 					},
 				},
 			},
-		{
-			displayName: 'Answer Options',
-			name: 'answerOptions',
-			type: 'collection',
-			placeholder: 'Add Option',
-			default: {},
-			displayOptions: {
-				show: {
-					resource: ['answer'],
-				},
-			},
-			options: [
-				{
-					displayName: 'Include Text',
-					name: 'text',
-					type: 'boolean',
-					default: false,
-					description: 'Whether to include full text content in the citation results',
-					routing: {
-						request: {
-							body: {
-								text: '={{ $value }}',
-							},
-						},
-					},
-				},
-				{
-					displayName: 'Output Schema',
-					name: 'outputSchema',
-					type: 'json',
-					default: '',
-					description: 'JSON Schema to enforce structured answer output instead of a plain string',
-					routing: {
-						request: {
-							body: {
-								outputSchema: '={{ JSON.parse($value) }}',
-							},
-						},
-					},
-				},
-				{
-					displayName: 'Stream',
-					name: 'stream',
-					type: 'boolean',
-					default: false,
-					description: 'Whether to stream the response via Server-Sent Events',
-					routing: {
-						request: {
-							body: {
-								stream: '={{ $value }}',
-							},
-						},
-					},
-				},
-			],
-		},
-		{
-			displayName: 'Additional Options',
-			name: 'additionalOptions',
-			type: 'collection',
-			placeholder: 'Add Option',
-			default: {},
-			displayOptions: {
-				show: {
-					resource: ['research'],
-					operation: ['createTask'],
-				},
-			},
-			options: [
-				{
-					displayName: 'Model',
-					name: 'model',
-					type: 'options',
-					options: [
-						{
-							name: 'Exa Research Fast',
-							value: 'exa-research-fast',
-							description: 'Fastest research model',
-						},
-						{
-							name: 'Exa Research',
-							value: 'exa-research',
-							description: 'Balanced speed and quality',
-						},
-						{
-							name: 'Exa Research Pro',
-							value: 'exa-research-pro',
-							description: 'Most thorough analysis and stronger reasoning',
-						},
-					],
-					default: 'exa-research',
-					description: 'Research model to use',
-					routing: {
-						request: {
-							body: {
-								model: '={{ $value }}',
-							},
-						},
-					},
-				},
-				{
-					displayName: 'Output Schema',
-					name: 'outputSchema',
-					type: 'json',
-					default: '',
-					description: 'JSON Schema to enforce structured output',
-					routing: {
-						request: {
-							body: {
-								outputSchema: '={{ JSON.parse($value) }}',
-							},
-						},
-					},
-				},
-			],
-		},
-		{
-			displayName: 'Query Options',
-			name: 'queryOptions',
-			type: 'collection',
-			placeholder: 'Add Option',
-			default: {},
-			displayOptions: {
-				show: {
-					resource: ['research'],
-					operation: ['getTask'],
-				},
-			},
-			options: [
-				{
-					displayName: 'Stream',
-					name: 'stream',
-					type: 'boolean',
-					default: false,
-					description: 'Whether to receive real-time updates via Server-Sent Events (SSE)',
-					routing: {
-						request: {
-							qs: {
-								stream: '={{ $value ? "true" : undefined }}',
-							},
-						},
-					},
-				},
-				{
-					displayName: 'Events',
-					name: 'events',
-					type: 'boolean',
-					default: false,
-					description: 'Whether to include the detailed event log of all operations performed',
-					routing: {
-						request: {
-							qs: {
-								events: '={{ $value ? "true" : undefined }}',
-							},
-						},
-					},
-				},
-			],
-		},
-		{
-			displayName: 'List Options',
-			name: 'listOptions',
-			type: 'collection',
-			placeholder: 'Add Option',
-			default: {},
-			displayOptions: {
-				show: {
-					resource: ['research'],
-					operation: ['listTasks'],
-				},
-			},
-			options: [
-				{
-					displayName: 'Cursor',
-					name: 'cursor',
-					type: 'string',
-					default: '',
-					description: 'The cursor to paginate through the results',
-					routing: {
-						request: {
-							qs: {
-								cursor: '={{ $value }}',
-							},
-						},
-					},
-				},
-				{
-					displayName: 'Limit',
-					name: 'limit',
-					type: 'number',
-						default: 50,
-					typeOptions: {
-						minValue: 1,
-					},
-					description: 'Max number of results to return',
-					routing: {
-						request: {
-							qs: {
-								limit: '={{ $value }}',
-							},
-						},
-					},
-				},
-			],
-		},
-		{
-			displayName: 'Additional Fields',
-			name: 'additionalFields',
-			type: 'collection',
-			placeholder: 'Add Field',
-			default: {},
-			displayOptions: {
-				show: {
-					resource: ['search', 'deepSearch'],
-			},
-		},
-		options: [
 			{
-				displayName: 'Additional Queries',
-				name: 'additionalQueries',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated query variations for deep search (only with type deep or deep-reasoning)',
-				routing: {
-					send: {
-						preSend: [
-							async function (this, requestOptions) {
-								const queries = this.getNodeParameter('additionalFields.additionalQueries', 0) as string;
-								if (queries) {
-									const queryArray = queries.split(',').map((q) => q.trim());
-									requestOptions.body = {
-										...(requestOptions.body as object),
-										additionalQueries: queryArray,
-									};
-								}
-								return requestOptions;
+				displayName: 'Answer Options',
+				name: 'answerOptions',
+				type: 'collection',
+				placeholder: 'Add Option',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['answer'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Include Text',
+						name: 'text',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to include full text content in the citation results',
+						routing: {
+							request: {
+								body: {
+									text: '={{ $value }}',
+								},
+							},
+						},
+					},
+					{
+						displayName: 'Output Schema',
+						name: 'outputSchema',
+						type: 'json',
+						default: '',
+						description: 'JSON Schema to enforce structured answer output instead of a plain string',
+						routing: {
+							request: {
+								body: {
+									outputSchema: '={{ JSON.parse($value) }}',
+								},
+							},
+						},
+					},
+					{
+						displayName: 'Stream',
+						name: 'stream',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to stream the response via Server-Sent Events',
+						routing: {
+							request: {
+								body: {
+									stream: '={{ $value }}',
+								},
+							},
+						},
+					},
+				],
+			},
+			{
+				displayName: 'Additional Options',
+				name: 'additionalOptions',
+				type: 'collection',
+				placeholder: 'Add Option',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['research'],
+						operation: ['createTask'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Model',
+						name: 'model',
+						type: 'options',
+						options: [
+							{
+								name: 'Exa Research Fast',
+								value: 'exa-research-fast',
+								description: 'Fastest research model',
+							},
+							{
+								name: 'Exa Research',
+								value: 'exa-research',
+								description: 'Balanced speed and quality',
+							},
+							{
+								name: 'Exa Research Pro',
+								value: 'exa-research-pro',
+								description: 'Most thorough analysis and stronger reasoning',
 							},
 						],
+						default: 'exa-research',
+						description: 'Research model to use',
+						routing: {
+							request: {
+								body: {
+									model: '={{ $value }}',
+								},
+							},
+						},
 					},
-				},
+					{
+						displayName: 'Output Schema',
+						name: 'outputSchema',
+						type: 'json',
+						default: '',
+						description: 'JSON Schema to enforce structured output',
+						routing: {
+							request: {
+								body: {
+									outputSchema: '={{ JSON.parse($value) }}',
+								},
+							},
+						},
+					},
+				],
 			},
 			{
-				displayName: 'Category',
-				name: 'category',
-				type: 'options',
+				displayName: 'Query Options',
+				name: 'queryOptions',
+				type: 'collection',
+				placeholder: 'Add Option',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['research'],
+						operation: ['getTask'],
+					},
+				},
 				options: [
-					{ name: 'Company', value: 'company' },
-					{ name: 'Financial Report', value: 'financial report' },
-					{ name: 'News', value: 'news' },
-					{ name: 'People', value: 'people' },
-					{ name: 'Personal Site', value: 'personal site' },
-					{ name: 'Research Paper', value: 'research paper' },
-					{ name: 'Tweet', value: 'tweet' },
+					{
+						displayName: 'Stream',
+						name: 'stream',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to receive real-time updates via Server-Sent Events (SSE)',
+						routing: {
+							request: {
+								qs: {
+									stream: '={{ $value ? "true" : undefined }}',
+								},
+							},
+						},
+					},
+					{
+						displayName: 'Events',
+						name: 'events',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to include the detailed event log of all operations performed',
+						routing: {
+							request: {
+								qs: {
+									events: '={{ $value ? "true" : undefined }}',
+								},
+							},
+						},
+					},
 				],
-					default: 'company',
-					description: 'A data category to focus on',
-					routing: {
-						request: {
-							body: {
-								category: '={{ $value }}',
-							},
-						},
+			},
+			{
+				displayName: 'List Options',
+				name: 'listOptions',
+				type: 'collection',
+				placeholder: 'Add Option',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['research'],
+						operation: ['listTasks'],
 					},
 				},
-				{
-					displayName: 'End Crawl Date',
-					name: 'endCrawlDate',
-					type: 'dateTime',
-					default: '',
-					description: 'Only return links crawled by Exa before this date',
-					routing: {
-						request: {
-							body: {
-								endCrawlDate: '={{ new Date($value).toISOString() }}',
-							},
-						},
-					},
-				},
-				{
-					displayName: 'End Published Date',
-					name: 'endPublishedDate',
-					type: 'dateTime',
-					default: '',
-					description: 'Only return links published before this date',
-					routing: {
-						request: {
-							body: {
-								endPublishedDate: '={{ new Date($value).toISOString() }}',
-							},
-						},
-					},
-				},
-				{
-					displayName: 'Exclude Domains',
-					name: 'excludeDomains',
-					type: 'string',
-					default: '',
-					description: 'Comma-separated list of domains to exclude',
-					routing: {
-						send: {
-							preSend: [
-								async function (this, requestOptions) {
-									const domains = this.getNodeParameter('additionalFields.excludeDomains', 0) as string;
-									if (domains) {
-										const domainArray = domains.split(',').map((d) => d.trim());
-										requestOptions.body = {
-											...(requestOptions.body as object),
-											excludeDomains: domainArray,
-										};
-									}
-									return requestOptions;
+				options: [
+					{
+						displayName: 'Cursor',
+						name: 'cursor',
+						type: 'string',
+						default: '',
+						description: 'The cursor to paginate through the results',
+						routing: {
+							request: {
+								qs: {
+									cursor: '={{ $value }}',
 								},
-							],
+							},
 						},
 					},
-				},
-				{
-					displayName: 'Exclude Text',
-					name: 'excludeText',
-					type: 'string',
-					default: '',
-					description: 'Text that must not be present in webpage (comma-separated, max 5 words each)',
-					routing: {
-						send: {
-							preSend: [
-								async function (this, requestOptions) {
-									const text = this.getNodeParameter('additionalFields.excludeText', 0) as string;
-									if (text) {
-										const textArray = text.split(',').map((t) => t.trim());
-										requestOptions.body = {
-											...(requestOptions.body as object),
-											excludeText: textArray,
-										};
-									}
-									return requestOptions;
+					{
+						displayName: 'Limit',
+						name: 'limit',
+						type: 'number',
+						default: 50,
+						typeOptions: {
+							minValue: 1,
+						},
+						description: 'Max number of results to return',
+						routing: {
+							request: {
+								qs: {
+									limit: '={{ $value }}',
 								},
-							],
+							},
 						},
 					},
+				],
+			},
+			{
+				displayName: 'Additional Fields',
+				name: 'additionalFields',
+				type: 'collection',
+				placeholder: 'Add Field',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['search'],
+					},
 				},
-				{
-					displayName: 'Include Domains',
-					name: 'includeDomains',
-					type: 'string',
-					default: '',
-					description: 'Comma-separated list of domains to include (e.g., arxiv.org, github.com)',
-					routing: {
-						send: {
-							preSend: [
-								async function (this, requestOptions) {
-									const domains = this.getNodeParameter('additionalFields.includeDomains', 0) as string;
-									if (domains) {
-										const domainArray = domains.split(',').map((d) => d.trim());
-										requestOptions.body = {
-											...(requestOptions.body as object),
-											includeDomains: domainArray,
-										};
-									}
-									return requestOptions;
+				options: [
+					{
+						displayName: 'Category',
+						name: 'category',
+						type: 'options',
+						options: [
+							{ name: 'Company', value: 'company' },
+							{ name: 'Financial Report', value: 'financial report' },
+							{ name: 'News', value: 'news' },
+							{ name: 'People', value: 'people' },
+							{ name: 'Personal Site', value: 'personal site' },
+							{ name: 'Research Paper', value: 'research paper' },
+							{ name: 'Tweet', value: 'tweet' },
+						],
+						default: 'company',
+						description: 'A data category to focus on',
+						routing: {
+							request: {
+								body: {
+									category: '={{ $value }}',
 								},
-							],
+							},
 						},
 					},
-				},
-				{
-					displayName: 'Include Text',
-					name: 'includeText',
-					type: 'string',
-					default: '',
-					description: 'Text that must be present in webpage (comma-separated, max 5 words each)',
-					routing: {
-						send: {
-							preSend: [
-								async function (this, requestOptions) {
-									const text = this.getNodeParameter('additionalFields.includeText', 0) as string;
-									if (text) {
-										const textArray = text.split(',').map((t) => t.trim());
-										requestOptions.body = {
-											...(requestOptions.body as object),
-											includeText: textArray,
-										};
-									}
-									return requestOptions;
+					{
+						displayName: 'End Crawl Date',
+						name: 'endCrawlDate',
+						type: 'dateTime',
+						default: '',
+						description: 'Only return links crawled by Exa before this date',
+						routing: {
+							request: {
+								body: {
+									endCrawlDate: '={{ new Date($value).toISOString() }}',
 								},
-							],
-						},
-					},
-				},
-				{
-					displayName: 'Moderation',
-					name: 'moderation',
-					type: 'boolean',
-					default: false,
-					description: 'Whether to enable content moderation to filter unsafe results',
-					routing: {
-						request: {
-							body: {
-								moderation: '={{ $value }}',
 							},
 						},
 					},
-				},
-				{
-					displayName: 'Output Schema',
-					name: 'outputSchema',
-					type: 'json',
-					default: '',
-					description: 'JSON Schema for deep search structured output (only with type deep or deep-reasoning)',
-					routing: {
-						request: {
-							body: {
-								outputSchema: '={{ JSON.parse($value) }}',
+					{
+						displayName: 'End Published Date',
+						name: 'endPublishedDate',
+						type: 'dateTime',
+						default: '',
+						description: 'Only return links published before this date',
+						routing: {
+							request: {
+								body: {
+									endPublishedDate: '={{ new Date($value).toISOString() }}',
+								},
 							},
 						},
 					},
-				},
-				{
-					displayName: 'Start Crawl Date',
-					name: 'startCrawlDate',
-					type: 'dateTime',
-					default: '',
-					description: 'Only return links crawled by Exa after this date',
-					routing: {
-						request: {
-							body: {
-								startCrawlDate: '={{ new Date($value).toISOString() }}',
+					{
+						displayName: 'Exclude Domains',
+						name: 'excludeDomains',
+						type: 'string',
+						default: '',
+						description: 'Comma-separated list of domains to exclude',
+						routing: {
+							send: {
+								preSend: [
+									async function (this, requestOptions) {
+										const domains = this.getNodeParameter(
+											'additionalFields.excludeDomains',
+											0,
+										) as string;
+										if (domains) {
+											const domainArray = domains.split(',').map((d) => d.trim());
+											requestOptions.body = {
+												...(requestOptions.body as object),
+												excludeDomains: domainArray,
+											};
+										}
+										return requestOptions;
+									},
+								],
 							},
 						},
 					},
-				},
-				{
-					displayName: 'Start Published Date',
-					name: 'startPublishedDate',
-					type: 'dateTime',
-					default: '',
-					description: 'Only return links published after this date',
-					routing: {
-						request: {
-							body: {
-								startPublishedDate: '={{ new Date($value).toISOString() }}',
+					{
+						displayName: 'Exclude Text',
+						name: 'excludeText',
+						type: 'string',
+						default: '',
+						description: 'Text that must not be present in webpage (comma-separated, max 5 words each)',
+						routing: {
+							send: {
+								preSend: [
+									async function (this, requestOptions) {
+										const text = this.getNodeParameter(
+											'additionalFields.excludeText',
+											0,
+										) as string;
+										if (text) {
+											const textArray = text.split(',').map((t) => t.trim());
+											requestOptions.body = {
+												...(requestOptions.body as object),
+												excludeText: textArray,
+											};
+										}
+										return requestOptions;
+									},
+								],
 							},
 						},
 					},
-				},
-				{
-					displayName: 'User Location',
-					name: 'userLocation',
-					type: 'string',
-					default: '',
-					description: 'Two-letter ISO country code (e.g., US, GB)',
-					routing: {
-						request: {
-							body: {
-								userLocation: '={{ $value }}',
+					{
+						displayName: 'Include Domains',
+						name: 'includeDomains',
+						type: 'string',
+						default: '',
+						description: 'Comma-separated list of domains to include (e.g., arxiv.org, github.com)',
+						routing: {
+							send: {
+								preSend: [
+									async function (this, requestOptions) {
+										const domains = this.getNodeParameter(
+											'additionalFields.includeDomains',
+											0,
+										) as string;
+										if (domains) {
+											const domainArray = domains.split(',').map((d) => d.trim());
+											requestOptions.body = {
+												...(requestOptions.body as object),
+												includeDomains: domainArray,
+											};
+										}
+										return requestOptions;
+									},
+								],
 							},
 						},
 					},
-				},
-			],
+					{
+						displayName: 'Include Text',
+						name: 'includeText',
+						type: 'string',
+						default: '',
+						description: 'Text that must be present in webpage (comma-separated, max 5 words each)',
+						routing: {
+							send: {
+								preSend: [
+									async function (this, requestOptions) {
+										const text = this.getNodeParameter(
+											'additionalFields.includeText',
+											0,
+										) as string;
+										if (text) {
+											const textArray = text.split(',').map((t) => t.trim());
+											requestOptions.body = {
+												...(requestOptions.body as object),
+												includeText: textArray,
+											};
+										}
+										return requestOptions;
+									},
+								],
+							},
+						},
+					},
+					{
+						displayName: 'Moderation',
+						name: 'moderation',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to enable content moderation to filter unsafe results',
+						routing: {
+							request: {
+								body: {
+									moderation: '={{ $value }}',
+								},
+							},
+						},
+					},
+					{
+						displayName: 'Start Crawl Date',
+						name: 'startCrawlDate',
+						type: 'dateTime',
+						default: '',
+						description: 'Only return links crawled by Exa after this date',
+						routing: {
+							request: {
+								body: {
+									startCrawlDate: '={{ new Date($value).toISOString() }}',
+								},
+							},
+						},
+					},
+					{
+						displayName: 'Start Published Date',
+						name: 'startPublishedDate',
+						type: 'dateTime',
+						default: '',
+						description: 'Only return links published after this date',
+						routing: {
+							request: {
+								body: {
+									startPublishedDate: '={{ new Date($value).toISOString() }}',
+								},
+							},
+						},
+					},
+					{
+						displayName: 'User Location',
+						name: 'userLocation',
+						type: 'string',
+						default: '',
+						description: 'Two-letter ISO country code (e.g., US, GB)',
+						routing: {
+							request: {
+								body: {
+									userLocation: '={{ $value }}',
+								},
+							},
+						},
+					},
+				],
 			},
 			{
 				displayName: 'Contents Options',
@@ -992,7 +920,7 @@ export class Exa implements INodeType {
 				default: {},
 				displayOptions: {
 					show: {
-						resource: ['search', 'deepSearch', 'contents', 'findSimilar'],
+						resource: ['search', 'contents', 'findSimilar'],
 					},
 				},
 				routing: {
@@ -1019,13 +947,16 @@ export class Exa implements INodeType {
 
 								const contents: Record<string, unknown> = {};
 
-								// Text: send as object when advanced options are present
 								const hasTextAdvanced =
-									(contentsOptions.textMaxCharacters !== undefined && contentsOptions.textMaxCharacters > 0) ||
+									(contentsOptions.textMaxCharacters !== undefined &&
+										contentsOptions.textMaxCharacters > 0) ||
 									contentsOptions.textIncludeHtmlTags === true;
 								if (hasTextAdvanced) {
 									const textObj: Record<string, unknown> = {};
-									if (contentsOptions.textMaxCharacters !== undefined && contentsOptions.textMaxCharacters > 0) {
+									if (
+										contentsOptions.textMaxCharacters !== undefined &&
+										contentsOptions.textMaxCharacters > 0
+									) {
 										textObj.maxCharacters = contentsOptions.textMaxCharacters;
 									}
 									if (contentsOptions.textIncludeHtmlTags === true) {
@@ -1036,16 +967,23 @@ export class Exa implements INodeType {
 									contents.text = contentsOptions.text;
 								}
 
-								// Highlights: send as object when advanced options are present
 								const hasHighlightsAdvanced =
-									(contentsOptions.highlightsMaxCharacters !== undefined && contentsOptions.highlightsMaxCharacters > 0) ||
-									(contentsOptions.highlightsQuery !== undefined && contentsOptions.highlightsQuery !== '');
+									(contentsOptions.highlightsMaxCharacters !== undefined &&
+										contentsOptions.highlightsMaxCharacters > 0) ||
+									(contentsOptions.highlightsQuery !== undefined &&
+										contentsOptions.highlightsQuery !== '');
 								if (hasHighlightsAdvanced) {
 									const hlObj: Record<string, unknown> = {};
-									if (contentsOptions.highlightsMaxCharacters !== undefined && contentsOptions.highlightsMaxCharacters > 0) {
+									if (
+										contentsOptions.highlightsMaxCharacters !== undefined &&
+										contentsOptions.highlightsMaxCharacters > 0
+									) {
 										hlObj.maxCharacters = contentsOptions.highlightsMaxCharacters;
 									}
-									if (contentsOptions.highlightsQuery !== undefined && contentsOptions.highlightsQuery !== '') {
+									if (
+										contentsOptions.highlightsQuery !== undefined &&
+										contentsOptions.highlightsQuery !== ''
+									) {
 										hlObj.query = contentsOptions.highlightsQuery;
 									}
 									contents.highlights = hlObj;
@@ -1053,8 +991,10 @@ export class Exa implements INodeType {
 									contents.highlights = contentsOptions.highlights;
 								}
 
-								// Summary: send as object when query is present
-								if (contentsOptions.summaryQuery !== undefined && contentsOptions.summaryQuery !== '') {
+								if (
+									contentsOptions.summaryQuery !== undefined &&
+									contentsOptions.summaryQuery !== ''
+								) {
 									contents.summary = { query: contentsOptions.summaryQuery };
 								} else if (contentsOptions.summary !== undefined) {
 									contents.summary = contentsOptions.summary;
@@ -1063,16 +1003,25 @@ export class Exa implements INodeType {
 								if (contentsOptions.livecrawl !== undefined) {
 									contents.livecrawl = contentsOptions.livecrawl;
 								}
-								if (contentsOptions.livecrawlTimeout !== undefined && contentsOptions.livecrawlTimeout > 0) {
+								if (
+									contentsOptions.livecrawlTimeout !== undefined &&
+									contentsOptions.livecrawlTimeout > 0
+								) {
 									contents.livecrawlTimeout = contentsOptions.livecrawlTimeout;
 								}
 								if (contentsOptions.maxAgeHours !== undefined) {
 									contents.maxAgeHours = contentsOptions.maxAgeHours;
 								}
-								if (contentsOptions.subpages !== undefined && contentsOptions.subpages > 0) {
+								if (
+									contentsOptions.subpages !== undefined &&
+									contentsOptions.subpages > 0
+								) {
 									contents.subpages = contentsOptions.subpages;
 								}
-								if (contentsOptions.subpageTarget !== undefined && contentsOptions.subpageTarget !== '') {
+								if (
+									contentsOptions.subpageTarget !== undefined &&
+									contentsOptions.subpageTarget !== ''
+								) {
 									contents.subpageTarget = contentsOptions.subpageTarget;
 								}
 
@@ -1080,7 +1029,10 @@ export class Exa implements INodeType {
 								if (contentsOptions.links !== undefined && contentsOptions.links > 0) {
 									extras.links = contentsOptions.links;
 								}
-								if (contentsOptions.imageLinks !== undefined && contentsOptions.imageLinks > 0) {
+								if (
+									contentsOptions.imageLinks !== undefined &&
+									contentsOptions.imageLinks > 0
+								) {
 									extras.imageLinks = contentsOptions.imageLinks;
 								}
 								if (Object.keys(extras).length > 0) {
