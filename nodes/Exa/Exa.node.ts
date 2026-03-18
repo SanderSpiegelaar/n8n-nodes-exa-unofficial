@@ -48,6 +48,11 @@ export class Exa implements INodeType {
 					description: 'Get contents from URLs',
 				},
 				{
+					name: 'Deep Search',
+					value: 'deepSearch',
+					description: 'Deep search with synthesized output and optional structured schema',
+				},
+				{
 					name: 'Find Similar',
 					value: 'findSimilar',
 					description: 'Find similar links to a given URL',
@@ -89,16 +94,42 @@ export class Exa implements INodeType {
 						},
 					},
 				],
-				default: 'search',
+					default: 'search',
 			},
+				{
+					displayName: 'Operation',
+					name: 'operation',
+					type: 'options',
+					noDataExpression: true,
+					displayOptions: {
+						show: {
+							resource: ['deepSearch'],
+						},
+					},
+					options: [
+						{
+							name: 'Deep Search',
+							value: 'deepSearch',
+							action: 'Deep search the web',
+							description: 'Search with deep analysis and synthesized output',
+							routing: {
+								request: {
+									method: 'POST',
+									url: '/search',
+								},
+							},
+						},
+					],
+					default: 'deepSearch',
+				},
 			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				displayOptions: {
-					show: {
-						resource: ['contents'],
+					displayName: 'Operation',
+					name: 'operation',
+					type: 'options',
+					noDataExpression: true,
+					displayOptions: {
+						show: {
+							resource: ['contents'],
 					},
 				},
 				options: [
@@ -226,7 +257,7 @@ export class Exa implements INodeType {
 			required: true,
 			displayOptions: {
 				show: {
-					resource: ['search', 'answer'],
+					resource: ['search', 'deepSearch', 'answer'],
 				},
 			},
 			default: '',
@@ -236,6 +267,111 @@ export class Exa implements INodeType {
 					body: {
 						query: '={{ $value }}',
 					},
+				},
+			},
+			},
+		{
+			displayName: 'Deep Search Type',
+			name: 'deepSearchType',
+			type: 'options',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['deepSearch'],
+				},
+			},
+			options: [
+				{
+					name: 'Deep',
+					value: 'deep',
+					description: 'Deep search with synthesized output',
+				},
+				{
+					name: 'Deep Reasoning',
+					value: 'deep-reasoning',
+					description: 'Full deep search with stronger reasoning',
+				},
+			],
+			default: 'deep',
+			routing: {
+				request: {
+					body: {
+						type: '={{ $value }}',
+					},
+				},
+			},
+		},
+		{
+			displayName: 'Output Format',
+			name: 'outputFormat',
+			type: 'options',
+			displayOptions: {
+				show: {
+					resource: ['deepSearch'],
+				},
+			},
+			options: [
+				{
+					name: 'Text',
+					value: 'text',
+					description: 'Get synthesized text output (default)',
+				},
+				{
+					name: 'Structured (JSON Schema)',
+					value: 'structured',
+					description: 'Get structured object output matching a JSON Schema',
+				},
+			],
+			default: 'text',
+			description: 'Choose between plain text or structured JSON output',
+		},
+		{
+			displayName: 'Output Schema',
+			name: 'deepSearchOutputSchema',
+			type: 'json',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['deepSearch'],
+					outputFormat: ['structured'],
+				},
+			},
+			default: '',
+			description: 'JSON Schema defining the structure of the output object',
+			routing: {
+				request: {
+					body: {
+						outputSchema: '={{ JSON.parse($value) }}',
+					},
+				},
+			},
+		},
+		{
+			displayName: 'Additional Queries',
+			name: 'deepSearchAdditionalQueries',
+			type: 'string',
+			displayOptions: {
+				show: {
+					resource: ['deepSearch'],
+				},
+			},
+			default: '',
+			description: 'Comma-separated query variations to improve deep search results',
+			routing: {
+				send: {
+					preSend: [
+						async function (this, requestOptions) {
+							const queries = this.getNodeParameter('deepSearchAdditionalQueries', 0) as string;
+							if (queries) {
+								const queryArray = queries.split(',').map((q) => q.trim());
+								requestOptions.body = {
+									...(requestOptions.body as object),
+									additionalQueries: queryArray,
+								};
+							}
+							return requestOptions;
+						},
+					],
 				},
 			},
 		},
@@ -341,16 +477,6 @@ export class Exa implements INodeType {
 						description: 'Intelligently combines neural and other search methods',
 					},
 					{
-						name: 'Deep',
-						value: 'deep',
-						description: 'Deep search with synthesized output',
-					},
-					{
-						name: 'Deep Reasoning',
-						value: 'deep-reasoning',
-						description: 'Full deep search with stronger reasoning',
-					},
-					{
 						name: 'Fast',
 						value: 'fast',
 						description: 'Streamlined low-latency search',
@@ -381,7 +507,7 @@ export class Exa implements INodeType {
 				type: 'number',
 				displayOptions: {
 					show: {
-						resource: ['search', 'findSimilar'],
+						resource: ['search', 'deepSearch', 'findSimilar'],
 					},
 				},
 				typeOptions: {
@@ -611,9 +737,9 @@ export class Exa implements INodeType {
 			default: {},
 			displayOptions: {
 				show: {
-					resource: ['search'],
-				},
+					resource: ['search', 'deepSearch'],
 			},
+		},
 		options: [
 			{
 				displayName: 'Additional Queries',
@@ -866,7 +992,7 @@ export class Exa implements INodeType {
 				default: {},
 				displayOptions: {
 					show: {
-						resource: ['search', 'contents', 'findSimilar'],
+						resource: ['search', 'deepSearch', 'contents', 'findSimilar'],
 					},
 				},
 				routing: {
