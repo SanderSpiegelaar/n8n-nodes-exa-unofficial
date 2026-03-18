@@ -462,10 +462,19 @@ export class Exa implements INodeType {
 					rows: 3,
 				},
 				routing: {
-					request: {
-						body: {
-							outputDescription: '={{ $value || undefined }}',
-						},
+					send: {
+						preSend: [
+							async function (this, requestOptions) {
+								const desc = this.getNodeParameter('outputDescription', 0) as string;
+								if (desc) {
+									requestOptions.body = {
+										...(requestOptions.body as object),
+										outputSchema: { type: 'text', description: desc },
+									};
+								}
+								return requestOptions;
+							},
+						],
 					},
 				},
 			},
@@ -482,12 +491,22 @@ export class Exa implements INodeType {
 					},
 				},
 				default: '',
-				description: 'JSON Schema defining the structure of the output object',
+				description: 'JSON Schema defining the structure of the output object (provide properties/required, type:object is added automatically)',
 				routing: {
-					request: {
-						body: {
-							outputSchema: '={{ JSON.parse($value) }}',
-						},
+					send: {
+						preSend: [
+							async function (this, requestOptions) {
+								const raw = this.getNodeParameter('outputSchema', 0) as string;
+								if (raw) {
+									const parsed = JSON.parse(raw) as Record<string, unknown>;
+									requestOptions.body = {
+										...(requestOptions.body as object),
+										outputSchema: { type: 'object', ...parsed },
+									};
+								}
+								return requestOptions;
+							},
+						],
 					},
 				},
 			},
@@ -1069,12 +1088,22 @@ export class Exa implements INodeType {
 									contents.extras = extras;
 								}
 
-								if (Object.keys(contents).length > 0) {
-									requestOptions.body = {
-										...(requestOptions.body as object),
-										contents,
-									};
-								}
+									if (Object.keys(contents).length > 0) {
+										const resource = this.getNodeParameter('resource', 0) as string;
+										if (resource === 'contents') {
+											// /contents endpoint expects options at top level
+											requestOptions.body = {
+												...(requestOptions.body as object),
+												...contents,
+											};
+										} else {
+											// /search and /findSimilar nest under contents
+											requestOptions.body = {
+												...(requestOptions.body as object),
+												contents,
+											};
+										}
+									}
 
 								return requestOptions;
 							},
