@@ -60,7 +60,7 @@ export class Exa implements INodeType {
 					{
 						name: 'Search',
 						value: 'search',
-						description: 'Search the web (includes deep search with synthesized output)',
+						description: 'Search the web intelligently',
 					},
 				],
 				default: 'search',
@@ -88,6 +88,18 @@ export class Exa implements INodeType {
 							},
 						},
 					},
+					{
+						name: 'Deep Search',
+						value: 'deepSearch',
+						action: 'Deep search the web',
+						description: 'Run a deep or deep-reasoning search with synthesized output',
+						routing: {
+							request: {
+								method: 'POST',
+								url: '/search',
+							},
+						},
+					},
 				],
 				default: 'search',
 			},
@@ -105,7 +117,7 @@ export class Exa implements INodeType {
 					{
 						name: 'Get Contents',
 						value: 'getContents',
-						action: 'Get contents from urls',
+						action: 'Get contents from ur ls',
 						description: 'Retrieve contents from a list of URLs',
 						routing: {
 							request: {
@@ -240,6 +252,38 @@ export class Exa implements INodeType {
 				},
 			},
 			{
+				displayName: 'Deep Search Type',
+				name: 'deepSearchType',
+				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['deepSearch'],
+					},
+				},
+				options: [
+					{
+						name: 'Deep',
+						value: 'deep',
+						description: 'Deep search with synthesized output (~5s)',
+					},
+					{
+						name: 'Deep Reasoning',
+						value: 'deep-reasoning',
+						description: 'Full deep search with stronger reasoning (~7s)',
+					},
+				],
+				default: 'deep',
+				description: 'The deep search variant to use',
+				routing: {
+					request: {
+						body: {
+							type: '={{ $value }}',
+						},
+					},
+				},
+			},
+			{
 				displayName: 'Instructions',
 				name: 'instructions',
 				type: 'string',
@@ -332,6 +376,7 @@ export class Exa implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['search'],
+						operation: ['search'],
 					},
 				},
 				options: [
@@ -382,7 +427,7 @@ export class Exa implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['search'],
-						type: ['deep', 'deep-reasoning'],
+						operation: ['deepSearch'],
 					},
 				},
 				options: [
@@ -398,7 +443,31 @@ export class Exa implements INodeType {
 					},
 				],
 				default: 'text',
-				description: 'Choose between plain text or structured JSON output for deep search',
+				description: 'Choose between plain text or structured JSON output',
+			},
+			{
+				displayName: 'Output Description',
+				name: 'outputDescription',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['deepSearch'],
+						outputFormat: ['text'],
+					},
+				},
+				default: '',
+				description: 'Freeform description of the desired text output format',
+				typeOptions: {
+					rows: 3,
+				},
+				routing: {
+					request: {
+						body: {
+							outputDescription: '={{ $value || undefined }}',
+						},
+					},
+				},
 			},
 			{
 				displayName: 'Output Schema',
@@ -408,7 +477,7 @@ export class Exa implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['search'],
-						type: ['deep', 'deep-reasoning'],
+						operation: ['deepSearch'],
 						outputFormat: ['structured'],
 					},
 				},
@@ -424,12 +493,12 @@ export class Exa implements INodeType {
 			},
 			{
 				displayName: 'Additional Queries',
-				name: 'deepSearchAdditionalQueries',
+				name: 'additionalQueries',
 				type: 'string',
 				displayOptions: {
 					show: {
 						resource: ['search'],
-						type: ['deep', 'deep-reasoning'],
+						operation: ['deepSearch'],
 					},
 				},
 				default: '',
@@ -438,10 +507,7 @@ export class Exa implements INodeType {
 					send: {
 						preSend: [
 							async function (this, requestOptions) {
-								const queries = this.getNodeParameter(
-									'deepSearchAdditionalQueries',
-									0,
-								) as string;
+								const queries = this.getNodeParameter('additionalQueries', 0) as string;
 								if (queries) {
 									const queryArray = queries.split(',').map((q) => q.trim());
 									requestOptions.body = {
@@ -756,10 +822,7 @@ export class Exa implements INodeType {
 							send: {
 								preSend: [
 									async function (this, requestOptions) {
-										const domains = this.getNodeParameter(
-											'additionalFields.excludeDomains',
-											0,
-										) as string;
+										const domains = this.getNodeParameter('additionalFields.excludeDomains', 0) as string;
 										if (domains) {
 											const domainArray = domains.split(',').map((d) => d.trim());
 											requestOptions.body = {
@@ -783,10 +846,7 @@ export class Exa implements INodeType {
 							send: {
 								preSend: [
 									async function (this, requestOptions) {
-										const text = this.getNodeParameter(
-											'additionalFields.excludeText',
-											0,
-										) as string;
+										const text = this.getNodeParameter('additionalFields.excludeText', 0) as string;
 										if (text) {
 											const textArray = text.split(',').map((t) => t.trim());
 											requestOptions.body = {
@@ -810,10 +870,7 @@ export class Exa implements INodeType {
 							send: {
 								preSend: [
 									async function (this, requestOptions) {
-										const domains = this.getNodeParameter(
-											'additionalFields.includeDomains',
-											0,
-										) as string;
+										const domains = this.getNodeParameter('additionalFields.includeDomains', 0) as string;
 										if (domains) {
 											const domainArray = domains.split(',').map((d) => d.trim());
 											requestOptions.body = {
@@ -837,10 +894,7 @@ export class Exa implements INodeType {
 							send: {
 								preSend: [
 									async function (this, requestOptions) {
-										const text = this.getNodeParameter(
-											'additionalFields.includeText',
-											0,
-										) as string;
+										const text = this.getNodeParameter('additionalFields.includeText', 0) as string;
 										if (text) {
 											const textArray = text.split(',').map((t) => t.trim());
 											requestOptions.body = {
@@ -947,16 +1001,13 @@ export class Exa implements INodeType {
 
 								const contents: Record<string, unknown> = {};
 
+								// Text: send as object when advanced options are present
 								const hasTextAdvanced =
-									(contentsOptions.textMaxCharacters !== undefined &&
-										contentsOptions.textMaxCharacters > 0) ||
+									(contentsOptions.textMaxCharacters !== undefined && contentsOptions.textMaxCharacters > 0) ||
 									contentsOptions.textIncludeHtmlTags === true;
 								if (hasTextAdvanced) {
 									const textObj: Record<string, unknown> = {};
-									if (
-										contentsOptions.textMaxCharacters !== undefined &&
-										contentsOptions.textMaxCharacters > 0
-									) {
+									if (contentsOptions.textMaxCharacters !== undefined && contentsOptions.textMaxCharacters > 0) {
 										textObj.maxCharacters = contentsOptions.textMaxCharacters;
 									}
 									if (contentsOptions.textIncludeHtmlTags === true) {
@@ -967,23 +1018,16 @@ export class Exa implements INodeType {
 									contents.text = contentsOptions.text;
 								}
 
+								// Highlights: send as object when advanced options are present
 								const hasHighlightsAdvanced =
-									(contentsOptions.highlightsMaxCharacters !== undefined &&
-										contentsOptions.highlightsMaxCharacters > 0) ||
-									(contentsOptions.highlightsQuery !== undefined &&
-										contentsOptions.highlightsQuery !== '');
+									(contentsOptions.highlightsMaxCharacters !== undefined && contentsOptions.highlightsMaxCharacters > 0) ||
+									(contentsOptions.highlightsQuery !== undefined && contentsOptions.highlightsQuery !== '');
 								if (hasHighlightsAdvanced) {
 									const hlObj: Record<string, unknown> = {};
-									if (
-										contentsOptions.highlightsMaxCharacters !== undefined &&
-										contentsOptions.highlightsMaxCharacters > 0
-									) {
+									if (contentsOptions.highlightsMaxCharacters !== undefined && contentsOptions.highlightsMaxCharacters > 0) {
 										hlObj.maxCharacters = contentsOptions.highlightsMaxCharacters;
 									}
-									if (
-										contentsOptions.highlightsQuery !== undefined &&
-										contentsOptions.highlightsQuery !== ''
-									) {
+									if (contentsOptions.highlightsQuery !== undefined && contentsOptions.highlightsQuery !== '') {
 										hlObj.query = contentsOptions.highlightsQuery;
 									}
 									contents.highlights = hlObj;
@@ -991,10 +1035,8 @@ export class Exa implements INodeType {
 									contents.highlights = contentsOptions.highlights;
 								}
 
-								if (
-									contentsOptions.summaryQuery !== undefined &&
-									contentsOptions.summaryQuery !== ''
-								) {
+								// Summary: send as object when query is present
+								if (contentsOptions.summaryQuery !== undefined && contentsOptions.summaryQuery !== '') {
 									contents.summary = { query: contentsOptions.summaryQuery };
 								} else if (contentsOptions.summary !== undefined) {
 									contents.summary = contentsOptions.summary;
@@ -1003,25 +1045,16 @@ export class Exa implements INodeType {
 								if (contentsOptions.livecrawl !== undefined) {
 									contents.livecrawl = contentsOptions.livecrawl;
 								}
-								if (
-									contentsOptions.livecrawlTimeout !== undefined &&
-									contentsOptions.livecrawlTimeout > 0
-								) {
+								if (contentsOptions.livecrawlTimeout !== undefined && contentsOptions.livecrawlTimeout > 0) {
 									contents.livecrawlTimeout = contentsOptions.livecrawlTimeout;
 								}
 								if (contentsOptions.maxAgeHours !== undefined) {
 									contents.maxAgeHours = contentsOptions.maxAgeHours;
 								}
-								if (
-									contentsOptions.subpages !== undefined &&
-									contentsOptions.subpages > 0
-								) {
+								if (contentsOptions.subpages !== undefined && contentsOptions.subpages > 0) {
 									contents.subpages = contentsOptions.subpages;
 								}
-								if (
-									contentsOptions.subpageTarget !== undefined &&
-									contentsOptions.subpageTarget !== ''
-								) {
+								if (contentsOptions.subpageTarget !== undefined && contentsOptions.subpageTarget !== '') {
 									contents.subpageTarget = contentsOptions.subpageTarget;
 								}
 
@@ -1029,10 +1062,7 @@ export class Exa implements INodeType {
 								if (contentsOptions.links !== undefined && contentsOptions.links > 0) {
 									extras.links = contentsOptions.links;
 								}
-								if (
-									contentsOptions.imageLinks !== undefined &&
-									contentsOptions.imageLinks > 0
-								) {
+								if (contentsOptions.imageLinks !== undefined && contentsOptions.imageLinks > 0) {
 									extras.imageLinks = contentsOptions.imageLinks;
 								}
 								if (Object.keys(extras).length > 0) {
