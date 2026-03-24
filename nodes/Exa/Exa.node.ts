@@ -791,7 +791,6 @@ export class Exa implements INodeType {
 							{ name: 'People', value: 'people' },
 							{ name: 'Personal Site', value: 'personal site' },
 							{ name: 'Research Paper', value: 'research paper' },
-							{ name: 'Tweet', value: 'tweet' },
 						],
 						default: 'company',
 						description: 'A data category to focus on',
