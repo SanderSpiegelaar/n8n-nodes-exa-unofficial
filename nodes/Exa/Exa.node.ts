@@ -31,6 +31,7 @@ export class Exa implements INodeType {
 			},
 		},
 		properties: [
+			// ── Resource selector ──────────────────────────────────────────
 			{
 				displayName: 'Resource',
 				name: 'resource',
@@ -55,6 +56,8 @@ export class Exa implements INodeType {
 				],
 				default: 'search',
 			},
+
+			// ── Operations ─────────────────────────────────────────────────
 			{
 				displayName: 'Operation',
 				name: 'operation',
@@ -70,7 +73,21 @@ export class Exa implements INodeType {
 						name: 'Search',
 						value: 'search',
 						action: 'Search the web',
-						description: 'Search the web and optionally extract contents',
+						description:
+							'Search the web and optionally extract contents',
+						routing: {
+							request: {
+								method: 'POST',
+								url: '/search',
+							},
+						},
+					},
+					{
+						name: 'Deep Search',
+						value: 'deepSearch',
+						action: 'Deep search the web',
+						description:
+							'Run a deep or deep-reasoning search with synthesized output',
 						routing: {
 							request: {
 								method: 'POST',
@@ -95,7 +112,7 @@ export class Exa implements INodeType {
 					{
 						name: 'Get Contents',
 						value: 'getContents',
-						action: 'Get contents from ur ls',
+						action: 'Get contents from urls',
 						description: 'Retrieve contents from a list of URLs',
 						routing: {
 							request: {
@@ -121,7 +138,7 @@ export class Exa implements INodeType {
 					{
 						name: 'Get Answer',
 						value: 'getAnswer',
-						action: 'Get a web grounded llm answer',
+						action: 'Get a web grounded LLM answer',
 						description: 'Get a web-grounded LLM answer to a query',
 						routing: {
 							request: {
@@ -133,6 +150,8 @@ export class Exa implements INodeType {
 				],
 				default: 'getAnswer',
 			},
+
+			// ── Shared query field (search + answer) ───────────────────────
 			{
 				displayName: 'Query',
 				name: 'query',
@@ -153,6 +172,8 @@ export class Exa implements INodeType {
 					},
 				},
 			},
+
+			// ── URLs field (contents) ──────────────────────────────────────
 			{
 				displayName: 'URLs',
 				name: 'urls',
@@ -169,8 +190,13 @@ export class Exa implements INodeType {
 					send: {
 						preSend: [
 							async function (this, requestOptions) {
-								const urls = this.getNodeParameter('urls', 0) as string;
-								const urlArray = urls.split(',').map((url) => url.trim());
+								const urls = this.getNodeParameter(
+									'urls',
+									0,
+								) as string;
+								const urlArray = urls
+									.split(',')
+									.map((url) => url.trim());
 								requestOptions.body = {
 									...(requestOptions.body as object),
 									ids: urlArray,
@@ -181,30 +207,29 @@ export class Exa implements INodeType {
 					},
 				},
 			},
+
+			// ── Deep Search Type (deep search operation only) ──────────────
 			{
-				displayName: 'Search Type',
-				name: 'type',
+				displayName: 'Deep Search Type',
+				name: 'deepSearchType',
 				type: 'options',
 				displayOptions: {
 					show: {
 						resource: ['search'],
+						operation: ['deepSearch'],
 					},
 				},
 				options: [
 					{
-						name: 'Auto',
-						value: 'auto',
-						description: 'Intelligently combines neural and other search methods',
-					},
-					{
 						name: 'Deep',
 						value: 'deep',
-						description: 'Deep search with synthesized output',
+						description: 'Deep search with synthesized output (~5s)',
 					},
 					{
 						name: 'Deep Lite',
 						value: 'deep-lite',
-						description: 'Lightweight synthesized output',
+						description:
+							'Lightweight synthesized output with lower latency',
 					},
 					{
 						name: 'Deep Max',
@@ -214,17 +239,224 @@ export class Exa implements INodeType {
 					{
 						name: 'Deep Reasoning',
 						value: 'deep-reasoning',
-						description: 'Deep search with stronger reasoning',
+						description:
+							'Deep search with stronger reasoning (~7s)',
+					},
+				],
+				default: 'deep',
+				description: 'The deep search variant to use',
+				routing: {
+					request: {
+						body: {
+							type: '={{ $value }}',
+						},
+					},
+				},
+			},
+
+			// ── Output Format (deep search only) ───────────────────────────
+			{
+				displayName: 'Output Format',
+				name: 'outputFormat',
+				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['deepSearch'],
+					},
+				},
+				options: [
+					{
+						name: 'Text',
+						value: 'text',
+						description: 'Get synthesized text output (default)',
+					},
+					{
+						name: 'Structured (JSON Schema)',
+						value: 'structured',
+						description:
+							'Get structured object output matching a JSON Schema',
+					},
+				],
+				default: 'text',
+				description:
+					'Choose between plain text or structured JSON output',
+			},
+			{
+				displayName: 'Output Description',
+				name: 'outputDescription',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['deepSearch'],
+						outputFormat: ['text'],
+					},
+				},
+				default: '',
+				description:
+					'Freeform description of the desired text output format',
+				typeOptions: {
+					rows: 3,
+				},
+				routing: {
+					send: {
+						preSend: [
+							async function (this, requestOptions) {
+								const desc = this.getNodeParameter(
+									'outputDescription',
+									0,
+								) as string;
+								if (desc) {
+									requestOptions.body = {
+										...(requestOptions.body as object),
+										outputSchema: {
+											type: 'text',
+											description: desc,
+										},
+									};
+								}
+								return requestOptions;
+							},
+						],
+					},
+				},
+			},
+			{
+				displayName: 'Output Schema',
+				name: 'deepOutputSchema',
+				type: 'json',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['deepSearch'],
+						outputFormat: ['structured'],
+					},
+				},
+				default: '',
+				description:
+					'JSON Schema defining the structure of the output object (provide properties/required, type:object is added automatically)',
+				routing: {
+					send: {
+						preSend: [
+							async function (this, requestOptions) {
+								const raw = this.getNodeParameter(
+									'deepOutputSchema',
+									0,
+								) as string;
+								if (raw) {
+									const parsed = JSON.parse(raw) as Record<
+										string,
+										unknown
+									>;
+									requestOptions.body = {
+										...(requestOptions.body as object),
+										outputSchema: {
+											type: 'object',
+											...parsed,
+										},
+									};
+								}
+								return requestOptions;
+							},
+						],
+					},
+				},
+			},
+
+			// ── Additional Queries (deep search only) ──────────────────────
+			{
+				displayName: 'Additional Queries',
+				name: 'additionalQueries',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['deepSearch'],
+					},
+				},
+				default: '',
+				description:
+					'Comma-separated query variations to improve deep search results',
+				routing: {
+					send: {
+						preSend: [
+							async function (this, requestOptions) {
+								const queries = this.getNodeParameter(
+									'additionalQueries',
+									0,
+								) as string;
+								if (queries) {
+									const queryArray = queries
+										.split(',')
+										.map((q) => q.trim());
+									requestOptions.body = {
+										...(requestOptions.body as object),
+										additionalQueries: queryArray,
+									};
+								}
+								return requestOptions;
+							},
+						],
+					},
+				},
+			},
+
+			// ── System Prompt (deep search only) ───────────────────────────
+			{
+				displayName: 'System Prompt',
+				name: 'deepSystemPrompt',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['deepSearch'],
+					},
+				},
+				default: '',
+				description:
+					'Instructions that guide synthesized output and search planning',
+				typeOptions: {
+					rows: 3,
+				},
+				routing: {
+					request: {
+						body: {
+							systemPrompt: '={{ $value }}',
+						},
+					},
+				},
+			},
+
+			// ── Search Type (regular search only) ──────────────────────────
+			{
+				displayName: 'Search Type',
+				name: 'type',
+				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['search'],
+					},
+				},
+				options: [
+					{
+						name: 'Auto',
+						value: 'auto',
+						description:
+							'Intelligently combines neural and other search methods',
 					},
 					{
 						name: 'Fast',
 						value: 'fast',
-						description: 'Streamlined low-latency search',
+						description: 'Low-latency optimized search',
 					},
 					{
 						name: 'Instant',
 						value: 'instant',
-						description: 'Lowest latency embeddings-based search',
+						description:
+							'Lowest latency embeddings-based search (~150ms)',
 					},
 				],
 				default: 'auto',
@@ -236,6 +468,8 @@ export class Exa implements INodeType {
 					},
 				},
 			},
+
+			// ── Number of Results (all search operations) ──────────────────
 			{
 				displayName: 'Number of Results',
 				name: 'numResults',
@@ -259,6 +493,8 @@ export class Exa implements INodeType {
 					},
 				},
 			},
+
+			// ── Additional Fields (regular search) ─────────────────────────
 			{
 				displayName: 'Additional Fields',
 				name: 'additionalFields',
@@ -268,50 +504,30 @@ export class Exa implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['search'],
+						operation: ['search'],
 					},
 				},
 				options: [
-					{
-						displayName: 'Additional Queries',
-						name: 'additionalQueries',
-						type: 'string',
-						default: '',
-						description:
-							'Comma-separated query variations for deep-search variants',
-						routing: {
-							send: {
-								preSend: [
-									async function (this, requestOptions) {
-										const queries = this.getNodeParameter(
-											'additionalFields.additionalQueries',
-											0,
-										) as string;
-										if (queries) {
-											const queryArray = queries
-												.split(',')
-												.map((q) => q.trim());
-											requestOptions.body = {
-												...(requestOptions.body as object),
-												additionalQueries: queryArray,
-											};
-										}
-										return requestOptions;
-									},
-								],
-							},
-						},
-					},
 					{
 						displayName: 'Category',
 						name: 'category',
 						type: 'options',
 						options: [
 							{ name: 'Company', value: 'company' },
-							{ name: 'Financial Report', value: 'financial report' },
+							{
+								name: 'Financial Report',
+								value: 'financial report',
+							},
 							{ name: 'News', value: 'news' },
 							{ name: 'People', value: 'people' },
-							{ name: 'Personal Site', value: 'personal site' },
-							{ name: 'Research Paper', value: 'research paper' },
+							{
+								name: 'Personal Site',
+								value: 'personal site',
+							},
+							{
+								name: 'Research Paper',
+								value: 'research paper',
+							},
 							{ name: 'Tweet', value: 'tweet' },
 						],
 						default: 'company',
@@ -329,7 +545,8 @@ export class Exa implements INodeType {
 						name: 'endPublishedDate',
 						type: 'dateTime',
 						default: '',
-						description: 'Only return links published before this date',
+						description:
+							'Only return links published before this date',
 						routing: {
 							request: {
 								body: {
@@ -344,7 +561,8 @@ export class Exa implements INodeType {
 						name: 'excludeDomains',
 						type: 'string',
 						default: '',
-						description: 'Comma-separated list of domains to exclude',
+						description:
+							'Comma-separated list of domains to exclude',
 						routing: {
 							send: {
 								preSend: [
@@ -463,7 +681,8 @@ export class Exa implements INodeType {
 						name: 'moderation',
 						type: 'boolean',
 						default: false,
-						description: 'Whether to filter unsafe content from results',
+						description:
+							'Whether to filter unsafe content from results',
 						routing: {
 							request: {
 								body: {
@@ -478,7 +697,7 @@ export class Exa implements INodeType {
 						type: 'json',
 						default: '',
 						description:
-							'JSON Schema to enforce structured output on deep search variants',
+							'JSON Schema to enforce structured output with grounded citations',
 						routing: {
 							send: {
 								preSend: [
@@ -490,7 +709,8 @@ export class Exa implements INodeType {
 										if (schema) {
 											requestOptions.body = {
 												...(requestOptions.body as object),
-												outputSchema: JSON.parse(schema),
+												outputSchema:
+													JSON.parse(schema),
 											};
 										}
 										return requestOptions;
@@ -504,7 +724,8 @@ export class Exa implements INodeType {
 						name: 'startPublishedDate',
 						type: 'dateTime',
 						default: '',
-						description: 'Only return links published after this date',
+						description:
+							'Only return links published after this date',
 						routing: {
 							request: {
 								body: {
@@ -520,7 +741,7 @@ export class Exa implements INodeType {
 						type: 'string',
 						default: '',
 						description:
-							'Instructions that guide synthesized output and search planning for deep-search variants',
+							'Instructions that guide synthesized output when outputSchema is provided',
 						typeOptions: {
 							rows: 3,
 						},
@@ -537,7 +758,8 @@ export class Exa implements INodeType {
 						name: 'userLocation',
 						type: 'string',
 						default: '',
-						description: 'Two-letter ISO country code (e.g., US, GB)',
+						description:
+							'Two-letter ISO country code (e.g., US, GB)',
 						routing: {
 							request: {
 								body: {
@@ -548,6 +770,147 @@ export class Exa implements INodeType {
 					},
 				],
 			},
+
+			// ── Additional Fields (deep search) ────────────────────────────
+			{
+				displayName: 'Additional Fields',
+				name: 'deepAdditionalFields',
+				type: 'collection',
+				placeholder: 'Add Field',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['search'],
+						operation: ['deepSearch'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Category',
+						name: 'category',
+						type: 'options',
+						options: [
+							{ name: 'Company', value: 'company' },
+							{
+								name: 'Financial Report',
+								value: 'financial report',
+							},
+							{ name: 'News', value: 'news' },
+							{ name: 'People', value: 'people' },
+							{
+								name: 'Personal Site',
+								value: 'personal site',
+							},
+							{
+								name: 'Research Paper',
+								value: 'research paper',
+							},
+							{ name: 'Tweet', value: 'tweet' },
+						],
+						default: 'company',
+						description: 'A data category to focus on',
+						routing: {
+							request: {
+								body: {
+									category: '={{ $value }}',
+								},
+							},
+						},
+					},
+					{
+						displayName: 'Exclude Domains',
+						name: 'excludeDomains',
+						type: 'string',
+						default: '',
+						description:
+							'Comma-separated list of domains to exclude',
+						routing: {
+							send: {
+								preSend: [
+									async function (this, requestOptions) {
+										const domains = this.getNodeParameter(
+											'deepAdditionalFields.excludeDomains',
+											0,
+										) as string;
+										if (domains) {
+											const domainArray = domains
+												.split(',')
+												.map((d) => d.trim());
+											requestOptions.body = {
+												...(requestOptions.body as object),
+												excludeDomains: domainArray,
+											};
+										}
+										return requestOptions;
+									},
+								],
+							},
+						},
+					},
+					{
+						displayName: 'Include Domains',
+						name: 'includeDomains',
+						type: 'string',
+						default: '',
+						description:
+							'Comma-separated list of domains to include',
+						routing: {
+							send: {
+								preSend: [
+									async function (this, requestOptions) {
+										const domains = this.getNodeParameter(
+											'deepAdditionalFields.includeDomains',
+											0,
+										) as string;
+										if (domains) {
+											const domainArray = domains
+												.split(',')
+												.map((d) => d.trim());
+											requestOptions.body = {
+												...(requestOptions.body as object),
+												includeDomains: domainArray,
+											};
+										}
+										return requestOptions;
+									},
+								],
+							},
+						},
+					},
+					{
+						displayName: 'Moderation',
+						name: 'moderation',
+						type: 'boolean',
+						default: false,
+						description:
+							'Whether to filter unsafe content from results',
+						routing: {
+							request: {
+								body: {
+									moderation: '={{ $value }}',
+								},
+							},
+						},
+					},
+					{
+						displayName: 'User Location',
+						name: 'userLocation',
+						type: 'string',
+						default: '',
+						description:
+							'Two-letter ISO country code (e.g., US, GB)',
+						routing: {
+							request: {
+								body: {
+									userLocation: '={{ $value }}',
+								},
+							},
+						},
+					},
+				],
+			},
+
+			// ── Answer Options ──────────────────────────────────────────────
 			{
 				displayName: 'Additional Options',
 				name: 'answerOptions',
@@ -565,7 +928,8 @@ export class Exa implements INodeType {
 						name: 'outputSchema',
 						type: 'json',
 						default: '',
-						description: 'JSON Schema to enforce structured output',
+						description:
+							'JSON Schema to enforce structured output',
 						routing: {
 							send: {
 								preSend: [
@@ -577,7 +941,8 @@ export class Exa implements INodeType {
 										if (schema) {
 											requestOptions.body = {
 												...(requestOptions.body as object),
-												outputSchema: JSON.parse(schema),
+												outputSchema:
+													JSON.parse(schema),
 											};
 										}
 										return requestOptions;
@@ -591,7 +956,8 @@ export class Exa implements INodeType {
 						name: 'systemPrompt',
 						type: 'string',
 						default: '',
-						description: 'Instructions that guide the answer generation',
+						description:
+							'Instructions that guide the answer generation',
 						typeOptions: {
 							rows: 3,
 						},
@@ -605,6 +971,8 @@ export class Exa implements INodeType {
 					},
 				],
 			},
+
+			// ── Contents Options (search + contents resources) ─────────────
 			{
 				displayName: 'Contents Options',
 				name: 'contentsOptions',
@@ -640,10 +1008,11 @@ export class Exa implements INodeType {
 									highlights: true,
 								};
 
-								// Apply explicit overrides from user configuration
 								if (contentsOptions.highlights === false) {
 									delete contents.highlights;
-								} else if (contentsOptions.highlightsMaxCharacters) {
+								} else if (
+									contentsOptions.highlightsMaxCharacters
+								) {
 									contents.highlights = {
 										maxCharacters:
 											contentsOptions.highlightsMaxCharacters,
@@ -651,25 +1020,28 @@ export class Exa implements INodeType {
 								}
 
 								if (contentsOptions.text) {
-									contents.text = contentsOptions.textMaxCharacters
-										? {
-												maxCharacters:
-													contentsOptions.textMaxCharacters,
-											}
-										: true;
+									contents.text =
+										contentsOptions.textMaxCharacters
+											? {
+													maxCharacters:
+														contentsOptions.textMaxCharacters,
+												}
+											: true;
 								}
 
 								if (contentsOptions.summary) {
 									contents.summary = true;
 								}
 								if (contentsOptions.livecrawl !== undefined) {
-									contents.livecrawl = contentsOptions.livecrawl;
+									contents.livecrawl =
+										contentsOptions.livecrawl;
 								}
 								if (
 									contentsOptions.subpages !== undefined &&
 									contentsOptions.subpages > 0
 								) {
-									contents.subpages = contentsOptions.subpages;
+									contents.subpages =
+										contentsOptions.subpages;
 								}
 								if (
 									contentsOptions.imageLinks !== undefined &&
@@ -721,7 +1093,8 @@ export class Exa implements INodeType {
 							minValue: 0,
 							maxValue: 10,
 						},
-						description: 'Number of image URLs to return per result (0-10)',
+						description:
+							'Number of image URLs to return per result (0-10)',
 					},
 					{
 						displayName: 'Livecrawl',
@@ -733,7 +1106,8 @@ export class Exa implements INodeType {
 							{ name: 'Fallback', value: 'fallback' },
 						],
 						default: 'fallback',
-						description: 'Whether to crawl the page in real-time',
+						description:
+							'Whether to crawl the page in real-time',
 					},
 					{
 						displayName: 'Subpages',
@@ -751,7 +1125,8 @@ export class Exa implements INodeType {
 						name: 'summary',
 						type: 'boolean',
 						default: false,
-						description: 'Whether to include an AI-generated summary',
+						description:
+							'Whether to include an AI-generated summary',
 					},
 					{
 						displayName: 'Text',
