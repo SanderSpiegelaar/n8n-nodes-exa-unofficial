@@ -6,12 +6,24 @@ This unofficial n8n community node provides Exa search, content extraction, answ
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
+[Difference from the official Exa node](#difference-from-the-official-exa-node)  
 [Installation](#installation)  
 [Operations](#operations)  
 [Credentials](#credentials)  
 [Compatibility](#compatibility)  
 [Usage](#usage)  
 [Resources](#resources)  
+
+## Difference from the official Exa node
+
+The [official Exa community node](https://github.com/exa-labs/n8n-integration) covers the core Search, Deep Search, Contents, and Answer APIs. This unofficial node includes those operations and additionally exposes Exa's **Agent** and **Websets** APIs directly in n8n.
+
+| Extra resource | Options provided by this node |
+| --- | --- |
+| **Agent** | Create, get, list, cancel, and delete runs; list run events; select effort; continue from a previous run; set a system prompt; pass JSON input, output schemas, and metadata; use additional data providers such as Similarweb, Financial Datasets, and Particle. |
+| **Websets** | Create and preview Websets; get, list, update, cancel, and delete them; manage searches and items; create and manage enrichments; create CSV or JSON exports and check export status. |
+
+Use the official node when Search, Contents, or Answer is sufficient. Use this node when a workflow also needs long-running Agent tasks, structured Webset collection building, enrichment, or export management without assembling raw HTTP Request nodes.
 
 ## Installation
 
