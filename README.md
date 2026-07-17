@@ -1,6 +1,6 @@
-# n8n-nodes-exa-official
+# n8n-nodes-exa-unofficial
 
-This is an n8n community node that provides integration with the Exa API for intelligent web search, async research, and content extraction.
+This unofficial n8n community node provides Exa search, content extraction, answers, Agent runs, and Websets.
 
 [Exa](https://exa.ai) is an AI-powered search engine that provides embeddings-based semantic search, deep web research, and structured content extraction.
 
@@ -22,8 +22,8 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 This node supports the following Exa API operations:
 
 ### Search
-- **Search**: Intelligently search the web with neural or keyword-based search
-  - Supports multiple search types: auto, neural, keyword, fast
+- **Search**: Intelligently search the web
+  - Supports multiple search types: auto, fast, instant
   - Filter by domain, date, category, and text content
   - Extract page contents (text, highlights, summaries)
   - Configure livecrawl and subpage crawling
@@ -31,16 +31,19 @@ This node supports the following Exa API operations:
 ### Contents
 - **Get Contents**: Retrieve cleaned text, highlights, and summaries from a list of URLs
 
-### Find Similar
-- **Find Similar Links**: Discover pages similar to a given URL
-
 ### Answer
-- **Get Answer**: Get an AI-generated answer to a query using Exa's research capabilities
+- **Get Answer**: Get an AI-generated web-grounded answer to a query
 
-### Research
-- **Create Research Task**: Launch a long-running research job powered by Exa Research or Research Pro
-- **Get Research Task**: Poll a specific research task for status, findings, and generated artifacts
-- **List Research Tasks**: Fetch paginated task history for monitoring and auditing
+### Agent
+- **Create, Get, List, Cancel, Delete Run**: Run Exa Agent tasks and manage lifecycle.
+- **List Run Events**: Fetch JSON event history with cursor pagination. SSE not exposed because standard n8n node execution expects completed JSON response.
+
+### Websets
+- **Websets**: Create, preview, get, list, update, cancel, and delete Websets.
+- **Searches**: Create, get, and cancel Webset searches.
+- **Items**: List, get, and delete Webset items.
+- **Enrichments**: Create, get, update, cancel, and delete enrichments.
+- **Exports**: Create CSV or JSON exports and poll export status.
 
 ## Credentials
 
@@ -50,7 +53,7 @@ To use this node, you need an Exa API key. You can obtain one by:
 2. Navigating to the API Keys section
 3. Creating a new API key
 
-Add the API key to your n8n credentials as "Exa API".
+Add the API key to your n8n credentials as "Exa (Unofficial) API".
 
 ## Compatibility
 
@@ -61,10 +64,10 @@ Add the API key to your n8n credentials as "Exa API".
 
 ### Basic Search Example
 
-1. Add the Exa node to your workflow
+1. Add the Exa (Unofficial) node to your workflow
 2. Select "Search" as the resource
 3. Enter your search query (e.g., "Latest AI research papers")
-4. Configure search type (auto, neural, keyword, or fast)
+4. Configure search type (auto, fast, or instant)
 5. Optionally add filters:
    - Category (research paper, news, company, etc.)
    - Date range (published date)
@@ -103,14 +106,17 @@ Exclude Domains: reddit.com
 - Twitter/LinkedIn profiles
 - Financial reports
 
-### Research Workflow Example
+### Agent Workflow Example
 
-1. Add an Exa node and set **Resource** to `Research` with the **Create Research Task** operation.
-2. Provide a clear research instruction (for example, "Compare emerging open-source RAG frameworks and summarize trade-offs").
-3. Choose the Research product tier (`exa-research` or `exa-research-pro`) and optional guardrails like domain/category allowlists.
-4. Store the returned `id` or use paired nodes (Set/Code) to persist it inside the workflow.
-5. Add another Exa node in the same workflow set to **Get Research Task** and reference the saved `id` to poll results until the status becomes `completed`.
-6. Inspect the response for `insights`, `sources`, `outline`, or generated assets, then continue your workflow (e.g., send a Slack summary or populate a database).
+1. Set **Resource** to `Agent`, then select **Create Run**.
+2. Enter query, optional system prompt, JSON input/output schema, metadata, and data sources.
+3. Store returned run `id`, then use **Get Run** with `{{$json.id}}` to poll until complete. No automatic polling occurs.
+
+### Websets Example
+
+1. Set **Resource** to `Websets`, then select **Create Webset**.
+2. Enter query and count; optionally provide entity, criteria JSON, enrichment JSON, title, external ID, and metadata.
+3. Use returned Webset ID in **Get Webset**, **List Items**, **Create Enrichment**, or **Create Export** through n8n expressions.
 
 For bulk monitoring, use **List Research Tasks** and apply parameters for pagination, status filtering, or creation date ranges.
 
@@ -136,7 +142,7 @@ npm link
 
 # In your n8n installation directory
 cd ~/.n8n/custom
-npm link n8n-nodes-exa-official
+npm link n8n-nodes-exa-unofficial
 
 # Start n8n
 n8n start
@@ -144,4 +150,4 @@ n8n start
 
 ## License
 
-[MIT](https://github.com/exa-labs/n8n-integration/blob/main/LICENSE)
+[MIT](https://github.com/SanderSpiegelaar/n8n-nodes-exa-unofficial/blob/main/LICENSE)

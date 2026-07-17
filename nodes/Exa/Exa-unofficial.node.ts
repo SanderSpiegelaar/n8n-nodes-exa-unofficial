@@ -1,23 +1,26 @@
+/* eslint-disable n8n-nodes-base/node-param-resource-with-plural-option */
+/* eslint-disable n8n-nodes-base/node-class-description-name-miscased */
 import { INodeType, INodeTypeDescription } from 'n8n-workflow';
 import packageJson from '../../package.json';
+import { agentWebsetsProperties } from './AgentWebsets.description';
 
 export class Exa implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Exa',
-		name: 'exa',
+		displayName: 'Exa (Unofficial)',
+		name: 'exa-unofficial',
 		icon: 'file:logo.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description: 'Semantic web search and research via Exa API',
 		defaults: {
-			name: 'Exa',
+			name: 'Exa (Unofficial)',
 		},
 		inputs: ['main'],
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'exaApi',
+				name: 'exaUnofficialApi',
 				required: true,
 			},
 		],
@@ -39,6 +42,11 @@ export class Exa implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
+						name: 'Agent',
+						value: 'agent',
+						description: 'Create and manage Agent runs',
+					},
+					{
 						name: 'Answer',
 						value: 'answer',
 						description: 'Get a web-grounded LLM answer to a query',
@@ -52,6 +60,11 @@ export class Exa implements INodeType {
 						name: 'Search',
 						value: 'search',
 						description: 'Search the web intelligently',
+					},
+					{
+						name: 'Webset',
+						value: 'websets',
+						description: 'Create and manage Websets collections',
 					},
 				],
 				default: 'search',
@@ -73,8 +86,7 @@ export class Exa implements INodeType {
 						name: 'Search',
 						value: 'search',
 						action: 'Search the web',
-						description:
-							'Search the web and optionally extract contents',
+						description: 'Search the web and optionally extract contents',
 						routing: {
 							request: {
 								method: 'POST',
@@ -86,8 +98,7 @@ export class Exa implements INodeType {
 						name: 'Deep Search',
 						value: 'deepSearch',
 						action: 'Deep search the web',
-						description:
-							'Run a deep or deep-reasoning search with synthesized output',
+						description: 'Run a deep or deep-reasoning search with synthesized output',
 						routing: {
 							request: {
 								method: 'POST',
@@ -190,13 +201,8 @@ export class Exa implements INodeType {
 					send: {
 						preSend: [
 							async function (this, requestOptions) {
-								const urls = this.getNodeParameter(
-									'urls',
-									0,
-								) as string;
-								const urlArray = urls
-									.split(',')
-									.map((url) => url.trim());
+								const urls = this.getNodeParameter('urls', 0) as string;
+								const urlArray = urls.split(',').map((url) => url.trim());
 								requestOptions.body = {
 									...(requestOptions.body as object),
 									ids: urlArray,
@@ -228,8 +234,7 @@ export class Exa implements INodeType {
 					{
 						name: 'Deep Lite',
 						value: 'deep-lite',
-						description:
-							'Lightweight synthesized output with lower latency',
+						description: 'Lightweight synthesized output with lower latency',
 					},
 					{
 						name: 'Deep Max',
@@ -239,8 +244,7 @@ export class Exa implements INodeType {
 					{
 						name: 'Deep Reasoning',
 						value: 'deep-reasoning',
-						description:
-							'Deep search with stronger reasoning (~7s)',
+						description: 'Deep search with stronger reasoning (~7s)',
 					},
 				],
 				default: 'deep',
@@ -274,13 +278,11 @@ export class Exa implements INodeType {
 					{
 						name: 'Structured (JSON Schema)',
 						value: 'structured',
-						description:
-							'Get structured object output matching a JSON Schema',
+						description: 'Get structured object output matching a JSON Schema',
 					},
 				],
 				default: 'text',
-				description:
-					'Choose between plain text or structured JSON output',
+				description: 'Choose between plain text or structured JSON output',
 			},
 			{
 				displayName: 'Output Description',
@@ -294,8 +296,7 @@ export class Exa implements INodeType {
 					},
 				},
 				default: '',
-				description:
-					'Freeform description of the desired text output format',
+				description: 'Freeform description of the desired text output format',
 				typeOptions: {
 					rows: 3,
 				},
@@ -303,10 +304,7 @@ export class Exa implements INodeType {
 					send: {
 						preSend: [
 							async function (this, requestOptions) {
-								const desc = this.getNodeParameter(
-									'outputDescription',
-									0,
-								) as string;
+								const desc = this.getNodeParameter('outputDescription', 0) as string;
 								if (desc) {
 									requestOptions.body = {
 										...(requestOptions.body as object),
@@ -341,15 +339,9 @@ export class Exa implements INodeType {
 					send: {
 						preSend: [
 							async function (this, requestOptions) {
-								const raw = this.getNodeParameter(
-									'deepOutputSchema',
-									0,
-								) as string;
+								const raw = this.getNodeParameter('deepOutputSchema', 0) as string;
 								if (raw) {
-									const parsed = JSON.parse(raw) as Record<
-										string,
-										unknown
-									>;
+									const parsed = JSON.parse(raw) as Record<string, unknown>;
 									requestOptions.body = {
 										...(requestOptions.body as object),
 										outputSchema: {
@@ -377,20 +369,14 @@ export class Exa implements INodeType {
 					},
 				},
 				default: '',
-				description:
-					'Comma-separated query variations to improve deep search results',
+				description: 'Comma-separated query variations to improve deep search results',
 				routing: {
 					send: {
 						preSend: [
 							async function (this, requestOptions) {
-								const queries = this.getNodeParameter(
-									'additionalQueries',
-									0,
-								) as string;
+								const queries = this.getNodeParameter('additionalQueries', 0) as string;
 								if (queries) {
-									const queryArray = queries
-										.split(',')
-										.map((q) => q.trim());
+									const queryArray = queries.split(',').map((q) => q.trim());
 									requestOptions.body = {
 										...(requestOptions.body as object),
 										additionalQueries: queryArray,
@@ -415,8 +401,7 @@ export class Exa implements INodeType {
 					},
 				},
 				default: '',
-				description:
-					'Instructions that guide synthesized output and search planning',
+				description: 'Instructions that guide synthesized output and search planning',
 				typeOptions: {
 					rows: 3,
 				},
@@ -444,8 +429,7 @@ export class Exa implements INodeType {
 					{
 						name: 'Auto',
 						value: 'auto',
-						description:
-							'Intelligently combines neural and other search methods',
+						description: 'Intelligently combines neural and other search methods',
 					},
 					{
 						name: 'Fast',
@@ -455,8 +439,7 @@ export class Exa implements INodeType {
 					{
 						name: 'Instant',
 						value: 'instant',
-						description:
-							'Lowest latency embeddings-based search (~150ms)',
+						description: 'Lowest latency embeddings-based search (~150ms)',
 					},
 				],
 				default: 'auto',
@@ -545,13 +528,11 @@ export class Exa implements INodeType {
 						name: 'endPublishedDate',
 						type: 'dateTime',
 						default: '',
-						description:
-							'Only return links published before this date',
+						description: 'Only return links published before this date',
 						routing: {
 							request: {
 								body: {
-									endPublishedDate:
-										'={{ new Date($value).toISOString() }}',
+									endPublishedDate: '={{ new Date($value).toISOString() }}',
 								},
 							},
 						},
@@ -561,8 +542,7 @@ export class Exa implements INodeType {
 						name: 'excludeDomains',
 						type: 'string',
 						default: '',
-						description:
-							'Comma-separated list of domains to exclude',
+						description: 'Comma-separated list of domains to exclude',
 						routing: {
 							send: {
 								preSend: [
@@ -572,9 +552,7 @@ export class Exa implements INodeType {
 											0,
 										) as string;
 										if (domains) {
-											const domainArray = domains
-												.split(',')
-												.map((d) => d.trim());
+											const domainArray = domains.split(',').map((d) => d.trim());
 											requestOptions.body = {
 												...(requestOptions.body as object),
 												excludeDomains: domainArray,
@@ -597,14 +575,9 @@ export class Exa implements INodeType {
 							send: {
 								preSend: [
 									async function (this, requestOptions) {
-										const text = this.getNodeParameter(
-											'additionalFields.excludeText',
-											0,
-										) as string;
+										const text = this.getNodeParameter('additionalFields.excludeText', 0) as string;
 										if (text) {
-											const textArray = text
-												.split(',')
-												.map((t) => t.trim());
+											const textArray = text.split(',').map((t) => t.trim());
 											requestOptions.body = {
 												...(requestOptions.body as object),
 												excludeText: textArray,
@@ -621,8 +594,7 @@ export class Exa implements INodeType {
 						name: 'includeDomains',
 						type: 'string',
 						default: '',
-						description:
-							'Comma-separated list of domains to include (e.g., arxiv.org, github.com)',
+						description: 'Comma-separated list of domains to include (e.g., arxiv.org, github.com)',
 						routing: {
 							send: {
 								preSend: [
@@ -632,9 +604,7 @@ export class Exa implements INodeType {
 											0,
 										) as string;
 										if (domains) {
-											const domainArray = domains
-												.split(',')
-												.map((d) => d.trim());
+											const domainArray = domains.split(',').map((d) => d.trim());
 											requestOptions.body = {
 												...(requestOptions.body as object),
 												includeDomains: domainArray,
@@ -651,20 +621,14 @@ export class Exa implements INodeType {
 						name: 'includeText',
 						type: 'string',
 						default: '',
-						description:
-							'Text that must be present in webpage (comma-separated, max 5 words each)',
+						description: 'Text that must be present in webpage (comma-separated, max 5 words each)',
 						routing: {
 							send: {
 								preSend: [
 									async function (this, requestOptions) {
-										const text = this.getNodeParameter(
-											'additionalFields.includeText',
-											0,
-										) as string;
+										const text = this.getNodeParameter('additionalFields.includeText', 0) as string;
 										if (text) {
-											const textArray = text
-												.split(',')
-												.map((t) => t.trim());
+											const textArray = text.split(',').map((t) => t.trim());
 											requestOptions.body = {
 												...(requestOptions.body as object),
 												includeText: textArray,
@@ -681,8 +645,7 @@ export class Exa implements INodeType {
 						name: 'moderation',
 						type: 'boolean',
 						default: false,
-						description:
-							'Whether to filter unsafe content from results',
+						description: 'Whether to filter unsafe content from results',
 						routing: {
 							request: {
 								body: {
@@ -696,8 +659,7 @@ export class Exa implements INodeType {
 						name: 'outputSchema',
 						type: 'json',
 						default: '',
-						description:
-							'JSON Schema to enforce structured output with grounded citations',
+						description: 'JSON Schema to enforce structured output with grounded citations',
 						routing: {
 							send: {
 								preSend: [
@@ -709,8 +671,7 @@ export class Exa implements INodeType {
 										if (schema) {
 											requestOptions.body = {
 												...(requestOptions.body as object),
-												outputSchema:
-													JSON.parse(schema),
+												outputSchema: JSON.parse(schema),
 											};
 										}
 										return requestOptions;
@@ -724,13 +685,11 @@ export class Exa implements INodeType {
 						name: 'startPublishedDate',
 						type: 'dateTime',
 						default: '',
-						description:
-							'Only return links published after this date',
+						description: 'Only return links published after this date',
 						routing: {
 							request: {
 								body: {
-									startPublishedDate:
-										'={{ new Date($value).toISOString() }}',
+									startPublishedDate: '={{ new Date($value).toISOString() }}',
 								},
 							},
 						},
@@ -740,8 +699,7 @@ export class Exa implements INodeType {
 						name: 'systemPrompt',
 						type: 'string',
 						default: '',
-						description:
-							'Instructions that guide synthesized output when outputSchema is provided',
+						description: 'Instructions that guide synthesized output when outputSchema is provided',
 						typeOptions: {
 							rows: 3,
 						},
@@ -758,8 +716,7 @@ export class Exa implements INodeType {
 						name: 'userLocation',
 						type: 'string',
 						default: '',
-						description:
-							'Two-letter ISO country code (e.g., US, GB)',
+						description: 'Two-letter ISO country code (e.g., US, GB)',
 						routing: {
 							request: {
 								body: {
@@ -822,8 +779,7 @@ export class Exa implements INodeType {
 						name: 'excludeDomains',
 						type: 'string',
 						default: '',
-						description:
-							'Comma-separated list of domains to exclude',
+						description: 'Comma-separated list of domains to exclude',
 						routing: {
 							send: {
 								preSend: [
@@ -833,9 +789,7 @@ export class Exa implements INodeType {
 											0,
 										) as string;
 										if (domains) {
-											const domainArray = domains
-												.split(',')
-												.map((d) => d.trim());
+											const domainArray = domains.split(',').map((d) => d.trim());
 											requestOptions.body = {
 												...(requestOptions.body as object),
 												excludeDomains: domainArray,
@@ -852,8 +806,7 @@ export class Exa implements INodeType {
 						name: 'includeDomains',
 						type: 'string',
 						default: '',
-						description:
-							'Comma-separated list of domains to include',
+						description: 'Comma-separated list of domains to include',
 						routing: {
 							send: {
 								preSend: [
@@ -863,9 +816,7 @@ export class Exa implements INodeType {
 											0,
 										) as string;
 										if (domains) {
-											const domainArray = domains
-												.split(',')
-												.map((d) => d.trim());
+											const domainArray = domains.split(',').map((d) => d.trim());
 											requestOptions.body = {
 												...(requestOptions.body as object),
 												includeDomains: domainArray,
@@ -882,8 +833,7 @@ export class Exa implements INodeType {
 						name: 'moderation',
 						type: 'boolean',
 						default: false,
-						description:
-							'Whether to filter unsafe content from results',
+						description: 'Whether to filter unsafe content from results',
 						routing: {
 							request: {
 								body: {
@@ -897,8 +847,7 @@ export class Exa implements INodeType {
 						name: 'userLocation',
 						type: 'string',
 						default: '',
-						description:
-							'Two-letter ISO country code (e.g., US, GB)',
+						description: 'Two-letter ISO country code (e.g., US, GB)',
 						routing: {
 							request: {
 								body: {
@@ -928,21 +877,16 @@ export class Exa implements INodeType {
 						name: 'outputSchema',
 						type: 'json',
 						default: '',
-						description:
-							'JSON Schema to enforce structured output',
+						description: 'JSON Schema to enforce structured output',
 						routing: {
 							send: {
 								preSend: [
 									async function (this, requestOptions) {
-										const schema = this.getNodeParameter(
-											'answerOptions.outputSchema',
-											0,
-										) as string;
+										const schema = this.getNodeParameter('answerOptions.outputSchema', 0) as string;
 										if (schema) {
 											requestOptions.body = {
 												...(requestOptions.body as object),
-												outputSchema:
-													JSON.parse(schema),
+												outputSchema: JSON.parse(schema),
 											};
 										}
 										return requestOptions;
@@ -956,8 +900,7 @@ export class Exa implements INodeType {
 						name: 'systemPrompt',
 						type: 'string',
 						default: '',
-						description:
-							'Instructions that guide the answer generation',
+						description: 'Instructions that guide the answer generation',
 						typeOptions: {
 							rows: 3,
 						},
@@ -988,11 +931,7 @@ export class Exa implements INodeType {
 					send: {
 						preSend: [
 							async function (this, requestOptions) {
-								const contentsOptions = this.getNodeParameter(
-									'contentsOptions',
-									0,
-									{},
-								) as {
+								const contentsOptions = this.getNodeParameter('contentsOptions', 0, {}) as {
 									text?: boolean;
 									textMaxCharacters?: number;
 									highlights?: boolean;
@@ -1010,43 +949,30 @@ export class Exa implements INodeType {
 
 								if (contentsOptions.highlights === false) {
 									delete contents.highlights;
-								} else if (
-									contentsOptions.highlightsMaxCharacters
-								) {
+								} else if (contentsOptions.highlightsMaxCharacters) {
 									contents.highlights = {
-										maxCharacters:
-											contentsOptions.highlightsMaxCharacters,
+										maxCharacters: contentsOptions.highlightsMaxCharacters,
 									};
 								}
 
 								if (contentsOptions.text) {
-									contents.text =
-										contentsOptions.textMaxCharacters
-											? {
-													maxCharacters:
-														contentsOptions.textMaxCharacters,
-												}
-											: true;
+									contents.text = contentsOptions.textMaxCharacters
+										? {
+												maxCharacters: contentsOptions.textMaxCharacters,
+											}
+										: true;
 								}
 
 								if (contentsOptions.summary) {
 									contents.summary = true;
 								}
 								if (contentsOptions.livecrawl !== undefined) {
-									contents.livecrawl =
-										contentsOptions.livecrawl;
+									contents.livecrawl = contentsOptions.livecrawl;
 								}
-								if (
-									contentsOptions.subpages !== undefined &&
-									contentsOptions.subpages > 0
-								) {
-									contents.subpages =
-										contentsOptions.subpages;
+								if (contentsOptions.subpages !== undefined && contentsOptions.subpages > 0) {
+									contents.subpages = contentsOptions.subpages;
 								}
-								if (
-									contentsOptions.imageLinks !== undefined &&
-									contentsOptions.imageLinks > 0
-								) {
+								if (contentsOptions.imageLinks !== undefined && contentsOptions.imageLinks > 0) {
 									contents.extras = {
 										imageLinks: contentsOptions.imageLinks,
 									};
@@ -1070,8 +996,7 @@ export class Exa implements INodeType {
 						name: 'highlights',
 						type: 'boolean',
 						default: true,
-						description:
-							'Whether to include highlighted excerpts (enabled by default)',
+						description: 'Whether to include highlighted excerpts (enabled by default)',
 					},
 					{
 						displayName: 'Highlights Max Characters',
@@ -1081,8 +1006,7 @@ export class Exa implements INodeType {
 						typeOptions: {
 							minValue: 0,
 						},
-						description:
-							'Maximum character length for highlights (0 for no limit)',
+						description: 'Maximum character length for highlights (0 for no limit)',
 					},
 					{
 						displayName: 'Image Links',
@@ -1093,8 +1017,7 @@ export class Exa implements INodeType {
 							minValue: 0,
 							maxValue: 10,
 						},
-						description:
-							'Number of image URLs to return per result (0-10)',
+						description: 'Number of image URLs to return per result (0-10)',
 					},
 					{
 						displayName: 'Livecrawl',
@@ -1106,8 +1029,7 @@ export class Exa implements INodeType {
 							{ name: 'Fallback', value: 'fallback' },
 						],
 						default: 'fallback',
-						description:
-							'Whether to crawl the page in real-time',
+						description: 'Whether to crawl the page in real-time',
 					},
 					{
 						displayName: 'Subpages',
@@ -1125,16 +1047,14 @@ export class Exa implements INodeType {
 						name: 'summary',
 						type: 'boolean',
 						default: false,
-						description:
-							'Whether to include an AI-generated summary',
+						description: 'Whether to include an AI-generated summary',
 					},
 					{
 						displayName: 'Text',
 						name: 'text',
 						type: 'boolean',
 						default: false,
-						description:
-							'Whether to include full cleaned text from the page',
+						description: 'Whether to include full cleaned text from the page',
 					},
 					{
 						displayName: 'Text Max Characters',
@@ -1144,11 +1064,11 @@ export class Exa implements INodeType {
 						typeOptions: {
 							minValue: 0,
 						},
-						description:
-							'Maximum character length for text content (0 for no limit)',
+						description: 'Maximum character length for text content (0 for no limit)',
 					},
 				],
 			},
+			...agentWebsetsProperties,
 		],
 	};
 }

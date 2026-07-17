@@ -6,8 +6,8 @@ import {
 } from 'n8n-workflow';
 
 export class ExaApi implements ICredentialType {
-	name = 'exaApi';
-	displayName = 'Exa API';
+	name = 'exaUnofficialApi';
+	displayName = 'Exa (Unofficial) API';
 	documentationUrl = 'https://docs.exa.ai/reference/getting-started';
 	properties: INodeProperties[] = [
 		{
