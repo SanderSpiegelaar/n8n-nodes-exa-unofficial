@@ -4,10 +4,10 @@ import { INodeType, INodeTypeDescription } from 'n8n-workflow';
 import packageJson from '../../package.json';
 import { agentWebsetsProperties } from './AgentWebsets.description';
 
-export class Exa implements INodeType {
+export class ExaUnofficial implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Exa (Unofficial)',
-		name: 'exa-unofficial',
+		name: 'exaUnofficial',
 		icon: 'file:logo.svg',
 		group: ['transform'],
 		version: 1,

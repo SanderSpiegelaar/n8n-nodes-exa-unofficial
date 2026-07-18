@@ -1,12 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { existsSync } = require('node:fs');
-const { Exa } = require('../dist/nodes/Exa/Exa-unofficial.node');
-const { ExaApi } = require('../dist/credentials/ExaApi.credentials');
-const nodeCodex = require('../dist/nodes/Exa/Exa-unofficial.node.json');
+const { ExaUnofficial } = require('../dist/nodes/Exa/ExaUnofficial.node');
+const { ExaUnofficialApi } = require('../dist/credentials/ExaUnofficialApi.credentials');
+const nodeCodex = require('../dist/nodes/Exa/ExaUnofficial.node.json');
 const packageJson = require('../package.json');
 
-const description = new Exa().description;
+const description = new ExaUnofficial().description;
 const properties = description.properties;
 
 function operation(value) {
@@ -17,7 +17,7 @@ function operation(value) {
 }
 
 test('uses unique unofficial package, node, and credential identifiers', () => {
-	const credential = new ExaApi();
+	const credential = new ExaUnofficialApi();
 	assert.equal(packageJson.name, 'n8n-nodes-exa-unofficial');
 	assert.ok(existsSync(packageJson.main));
 	assert.ok(existsSync(packageJson.types));
@@ -25,7 +25,7 @@ test('uses unique unofficial package, node, and credential identifiers', () => {
 	assert.ok(packageJson.n8n.credentials.every(existsSync));
 	assert.equal(nodeCodex.node, 'n8n-nodes-exa-unofficial');
 	assert.equal(description.displayName, 'Exa (Unofficial)');
-	assert.equal(description.name, 'exa-unofficial');
+	assert.equal(description.name, 'exaUnofficial');
 	assert.equal(description.defaults.name, 'Exa (Unofficial)');
 	assert.equal(description.credentials[0].name, 'exaUnofficialApi');
 	assert.equal(credential.name, 'exaUnofficialApi');
